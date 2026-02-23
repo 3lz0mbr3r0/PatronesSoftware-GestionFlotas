@@ -24,7 +24,7 @@
 ![Proyecto](https://img.shields.io/badge/Proyecto-Académico-blue)
 ![Universidad](https://img.shields.io/badge/UTS-Logística-orange)
 ![SOLID](https://img.shields.io/badge/SOLID-Principios-blueviolet)
-![Tipo](https://img.shields.io/badge/Sistema-Gestión%20de%20Flotas-orange)
+![Tipo](https://img.shields.io/badge/Sistema-Gestión%20de%20Flotas-orange) 
 
 </p>
 
