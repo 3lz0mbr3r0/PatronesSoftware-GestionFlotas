@@ -1,148 +1,148 @@
-# 🚛 Sistema de Gestión de Flotas
+# **Proyecto Sector Logístico/Transporte - Sistema de Gestión de Flotas**
 
-Proyecto – Sector Logística / Transporte
-
-# 📌 Descripción
+## Descripción
 
 Este proyecto implementa un Sistema de Gestión de Flotas desarrollado como una API REST con Spring Boot, aplicando el patrón de arquitectura en capas (Controller – Service – Repository).
 
 El sistema permite administrar vehículos y controlar su operación logística mediante:
 
-Monitoreo en tiempo real (simulado)
+- Monitoreo en tiempo real (simulado)
 
-Optimización de rutas y asignación de cargas
+- Optimización de rutas y asignación de cargas
 
-Mantenimiento predictivo por kilometraje
+- Mantenimiento predictivo por kilometraje
 
-Generación de enlaces de navegación
+- Generación de enlaces de navegación
 
 Es un proyecto académico enfocado en aplicar patrones de software, buenas prácticas de desarrollo backend y diseño limpio.
 
-# 🎯 Objetivo del Sistema
+## Objetivos
 
 Desarrollar una API que permita gestionar la operación básica de una flota de transporte de forma organizada, modular y escalable.
 
-# 🚘 Funcionalidades Principales
-📍 Monitoreo en Tiempo Real de Vehículos
+## Funcionalidades Principales
+### Monitoreo en Tiempo Real de Vehículos
 
 Implementado de forma simulada mediante coordenadas almacenadas en la base de datos.
 
 Permite:
+- Registrar latitud y longitud del vehículo
 
-Registrar latitud y longitud del vehículo
+- Consultar ubicación actual
 
-Consultar ubicación actual
+- Cambiar el estado del vehículo:
 
-Cambiar el estado del vehículo:
+  - DISPONIBLE
 
-DISPONIBLE
+  - EN_RUTA
 
-EN_RUTA
-
-MANTENIMIENTO
+- MANTENIMIENTO
 
 Endpoints principales:
 
-PUT /vehiculos/{id}/ubicacion
-GET /vehiculos
-# 🗺 Optimización de Rutas y Asignación de Cargas
+- `PUT /vehiculos/{id}/ubicacion`
+- `GET /vehiculos`
+
+## Optimización de Rutas y Asignación de Cargas
 
 Flujo básico:
 
-Se registra una orden de transporte con origen y destino
+1. Se registra una orden de transporte con origen y destino
 
-El sistema busca vehículos disponibles
+2. El sistema busca vehículos disponibles
 
-Se selecciona el más cercano (cálculo por coordenadas)
+3. Se selecciona el más cercano (cálculo por coordenadas)
 
-Se asigna automáticamente
+4. Se asigna automáticamente
 
-El vehículo cambia a estado EN_RUTA
+5. El vehículo cambia a estado EN_RUTA
 
 Esto permite simular un proceso real de despacho logístico sin depender de APIs externas.
 
-# 🔧 Mantenimiento Predictivo de Vehículos
+## Mantenimiento Predictivo de Vehículos
 
 Basado en el kilometraje.
 
 Cada vehículo tiene:
 
-kilometrajeActual
+- kilometrajeActual
 
-limiteMantenimiento
+- limiteMantenimiento
 
 Cuando el límite es superado:
 
-Se genera una alerta
+- Se genera una alerta
 
-El vehículo puede pasar a estado MANTENIMIENTO
+- El vehículo puede pasar a estado MANTENIMIENTO
 
 Endpoint:
 
-PUT /vehiculos/{id}/kilometraje
-# 🧭 Integración con Sistemas de Navegación
+- `PUT /vehiculos/{id}/kilometraje`
+
+## Integración con Sistemas de Navegación
 
 Se genera dinámicamente un enlace de navegación hacia Google Maps:
 
-https://www.google.com/maps/dir/{origen}/{destino}
+- Ejemplo: `https://www.google.com/maps/dir/{origen}/{destino}`
 
 Este enlace se consulta desde la orden de transporte asignada.
 
-# 🔐 Seguridad
+## Seguridad
 
 Implementada con:
 
-Spring Security
+- Spring Security
 
-Autenticación con usuario y contraseña
+- Autenticación con usuario y contraseña
 
-JWT
+- JWT
 
-Control de acceso por roles
+- Control de acceso por roles
 
 Roles:
 
-ADMIN → Gestión completa
+- ADMIN → Gestión completa
 
-OPERADOR → Operación logística
+- OPERADOR → Operación logística
 
-# 🏗 Arquitectura del Sistema
-🔹 Arquitectura en Capas
+## Arquitectura del Sistema
 
-Controller → Exposición de endpoints REST
+### Arquitectura en Capas
 
-Service → Lógica de negocio
+- Controller → Exposición de endpoints REST
 
-Repository → Acceso a datos
+- Service → Lógica de negocio
+
+- Repository → Acceso a datos
 
 Este enfoque permite:
 
-Separación de responsabilidades
+- Separación de responsabilidades
 
-Código mantenible
+- Código mantenible
 
-Facilidad de pruebas
+- Facilidad de pruebas
 
-# ⚙️ Tecnologías Utilizadas
+## Tecnologías Utilizadas
 
-Spring Boot
+- Spring Boot
 
-Spring Web
+- Spring Web
 
-Spring Data JPA
+- Spring Data JPA
 
-Spring Security
+- Spring Security
 
-JWT
+- JWT
 
-MySQL / PostgreSQL
+- MySQL / PostgreSQL
 
-Maven
+- Maven
 
-# 🗂 Entidades Principales
+## Entidades Principales
 
-Vehiculo
+- Vehiculo
 
-OrdenTransporte
+- OrdenTransporte
 
-Usuario
+- Usuario
