@@ -1,4 +1,12 @@
-# **Proyecto Sector Logístico/Transporte - Sistema de Gestión de Flotas**
+# Proyecto Sector Logístico/Transporte
+## Sistema de Gestión de Flotas
+![Spring Boot](https://img.shields.io/badge/SpringBoot-3.x-brightgreen)
+![Java](https://img.shields.io/badge/Java-17-orange)
+![Maven](https://img.shields.io/badge/Maven-Build-blue)
+![MySQL](https://img.shields.io/badge/MySQL-Database-blue)
+![JWT](https://img.shields.io/badge/JWT-Security-black)
+
+---
 
 ## Descripción
 
@@ -15,6 +23,8 @@ El sistema permite administrar vehículos y controlar su operación logística m
 - Generación de enlaces de navegación
 
 Es un proyecto académico enfocado en aplicar patrones de software, buenas prácticas de desarrollo backend y diseño limpio.
+
+---
 
 ## Objetivos
 
@@ -43,6 +53,8 @@ Endpoints principales:
 - `PUT /vehiculos/{id}/ubicacion`
 - `GET /vehiculos`
 
+---
+
 ## Optimización de Rutas y Asignación de Cargas
 
 Flujo básico:
@@ -58,6 +70,8 @@ Flujo básico:
 5. El vehículo cambia a estado EN_RUTA
 
 Esto permite simular un proceso real de despacho logístico sin depender de APIs externas.
+
+---
 
 ## Mantenimiento Predictivo de Vehículos
 
@@ -79,6 +93,8 @@ Endpoint:
 
 - `PUT /vehiculos/{id}/kilometraje`
 
+---
+
 ## Integración con Sistemas de Navegación
 
 Se genera dinámicamente un enlace de navegación hacia Google Maps:
@@ -86,6 +102,8 @@ Se genera dinámicamente un enlace de navegación hacia Google Maps:
 - Ejemplo: `https://www.google.com/maps/dir/{origen}/{destino}`
 
 Este enlace se consulta desde la orden de transporte asignada.
+
+---
 
 ## Seguridad
 
@@ -105,6 +123,8 @@ Roles:
 
 - OPERADOR → Operación logística
 
+---
+
 ## Arquitectura del Sistema
 
 ### Arquitectura en Capas
@@ -123,6 +143,8 @@ Este enfoque permite:
 
 - Facilidad de pruebas
 
+---
+
 ## Tecnologías Utilizadas
 
 - Spring Boot
@@ -138,6 +160,8 @@ Este enfoque permite:
 - MySQL / PostgreSQL
 
 - Maven
+
+---
 
 ## Entidades Principales
 
