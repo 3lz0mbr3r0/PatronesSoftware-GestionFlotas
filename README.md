@@ -22,7 +22,7 @@ Es un proyecto académico enfocado en aplicar patrones de software, buenas prác
 
 Desarrollar una API que permita gestionar la operación básica de una flota de transporte de forma organizada, modular y escalable.
 
-🚘 Funcionalidades Principales
+# 🚘 Funcionalidades Principales
 📍 Monitoreo en Tiempo Real de Vehículos
 
 Implementado de forma simulada mediante coordenadas almacenadas en la base de datos.
@@ -45,7 +45,7 @@ Endpoints principales:
 
 PUT /vehiculos/{id}/ubicacion
 GET /vehiculos
-🗺 Optimización de Rutas y Asignación de Cargas
+# 🗺 Optimización de Rutas y Asignación de Cargas
 
 Flujo básico:
 
@@ -61,7 +61,7 @@ El vehículo cambia a estado EN_RUTA
 
 Esto permite simular un proceso real de despacho logístico sin depender de APIs externas.
 
-🔧 Mantenimiento Predictivo de Vehículos
+# 🔧 Mantenimiento Predictivo de Vehículos
 
 Basado en el kilometraje.
 
@@ -80,7 +80,7 @@ El vehículo puede pasar a estado MANTENIMIENTO
 Endpoint:
 
 PUT /vehiculos/{id}/kilometraje
-🧭 Integración con Sistemas de Navegación
+# 🧭 Integración con Sistemas de Navegación
 
 Se genera dinámicamente un enlace de navegación hacia Google Maps:
 
@@ -88,7 +88,7 @@ https://www.google.com/maps/dir/{origen}/{destino}
 
 Este enlace se consulta desde la orden de transporte asignada.
 
-🔐 Seguridad
+# 🔐 Seguridad
 
 Implementada con:
 
@@ -106,7 +106,7 @@ ADMIN → Gestión completa
 
 OPERADOR → Operación logística
 
-🏗 Arquitectura del Sistema
+# 🏗 Arquitectura del Sistema
 🔹 Arquitectura en Capas
 
 Controller → Exposición de endpoints REST
@@ -123,7 +123,7 @@ Código mantenible
 
 Facilidad de pruebas
 
-⚙️ Tecnologías Utilizadas
+# ⚙️ Tecnologías Utilizadas
 
 Spring Boot
 
@@ -139,7 +139,7 @@ MySQL / PostgreSQL
 
 Maven
 
-🗂 Entidades Principales
+# 🗂 Entidades Principales
 
 Vehiculo
 
