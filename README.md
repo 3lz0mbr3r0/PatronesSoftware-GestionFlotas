@@ -137,7 +137,9 @@ Implementada con:
 
 - JWT
 
-- Control de acceso por roles
+- Control de versiones mediante github
+
+- Control de acceso por roles 
 
 Roles:
 
@@ -150,13 +152,13 @@ Roles:
 
 <h2 align="center"> ARQUITECTURA DEL SISTEMA</h2>
 
-### Arquitectura en Capas - `Controller → Service → Repository → Database`
+### Arquitectura hexagonal - `Dominio → Puertos → Adaptadores`
 
-- Controller → Exposición de endpoints REST
+- Dominio → Contiene las entidades y la lógica del negocio
 
-- Service → Lógica de negocio
+- Puertos → Interfaces que definen los casos de uso del sistema y las operaciones necesarias
 
-- Repository → Acceso a datos
+- Adaptadores → Implementaciones de los puertos que permiten la comunicación con el exterior
 
 Este enfoque permite:
 
@@ -165,24 +167,6 @@ Este enfoque permite:
 - Código mantenible
 
 - Facilidad de pruebas
-
----
-
-<h2 align="center"> TECNOLOGÍAS UTILIZADAS</h2>
-
-- Spring Boot
-
-- Spring Web
-
-- Spring Data JPA
-
-- Spring Security
-
-- JWT
-
-- MySQL / PostgreSQL
-
-- Maven
 
 ---
 
