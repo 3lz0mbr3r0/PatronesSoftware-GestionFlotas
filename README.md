@@ -1,8 +1,8 @@
 <h1 align="center"> PROYECTO SECTOR LOGÍSTICO/TRANSPORTE</h1>
 
-### Sistema de Gestión de Flotas
+<h3 align="center"> Sistema de Gestión de Flotas</h3>
 
-<details>
+<details align="center">
 <summary>Autores</summary>
 
 ###### Estudiante 1: Oscar Yair Pardo
@@ -15,11 +15,15 @@
 
 </details>
 
+<p align="center">
+  
 ![Spring Boot](https://img.shields.io/badge/SpringBoot-3.x-brightgreen)
 ![Java](https://img.shields.io/badge/Java-17-orange)
 ![Maven](https://img.shields.io/badge/Maven-Build-blue)
 ![MySQL](https://img.shields.io/badge/MySQL-Database-blue)
 ![JWT](https://img.shields.io/badge/JWT-Security-black)
+
+</p>
 
 ---
 
