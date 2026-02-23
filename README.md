@@ -19,9 +19,12 @@
   
 ![Spring Boot](https://img.shields.io/badge/SpringBoot-3.x-brightgreen)
 ![Java](https://img.shields.io/badge/Java-17-orange)
-![Maven](https://img.shields.io/badge/Maven-Build-blue)
 ![MySQL](https://img.shields.io/badge/MySQL-Database-blue)
-![JWT](https://img.shields.io/badge/JWT-Security-black)
+![Status](https://img.shields.io/badge/Status-En%20Desarrollo-yellow)
+![Proyecto](https://img.shields.io/badge/Proyecto-Académico-blue)
+![Universidad](https://img.shields.io/badge/UTS-Logística-orange)
+![SOLID](https://img.shields.io/badge/SOLID-Principios-blueviolet)
+![Tipo](https://img.shields.io/badge/Sistema-Gestión%20de%20Flotas-orange)
 
 </p>
 
@@ -29,7 +32,7 @@
 
 <h2 align="center"> DESCRIPCIÓN</h2>
 
-Este proyecto implementa un Sistema de Gestión de Flotas desarrollado como una API REST con Spring Boot, aplicando el patrón de arquitectura en capas (Controller – Service – Repository).
+Este proyecto implementa un Sistema de Gestión de Flotas desarrollado como una API REST con Spring Boot, aplicando el patrón de arquitectura hexagonal (Dominio – Puertos – Adaptadores).
 
 El sistema permite administrar vehículos y controlar su operación logística mediante:
 
