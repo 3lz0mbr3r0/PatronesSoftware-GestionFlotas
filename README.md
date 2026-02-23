@@ -5,7 +5,7 @@
 <details align="center">
 <summary>Autores</summary>
 
-###### Estudiante 1: Oscar Yair Pardo
+###### Estudiante 1: Oscar Yair Pardo Pineda
 
 ###### Estudiante 2: Jorge Alfredo Leal Cruz
 
