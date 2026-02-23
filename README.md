@@ -1,5 +1,20 @@
-# Proyecto Sector Logístico/Transporte
-## Sistema de Gestión de Flotas
+<h1 align="center"> PROYECTO SECTOR LOGÍSTICO/TRANSPORTE</h1>
+
+### Sistema de Gestión de Flotas
+
+<details>
+<summary>Autores</summary>
+
+###### Estudiante 1: Oscar Yair Pardo
+
+###### Estudiante 2: Jorge Alfredo Leal Cruz
+
+###### Docente: Eliecer Montero Ojeda
+
+###### Unidades Tecnológicas de Santander - 2026
+
+</details>
+
 ![Spring Boot](https://img.shields.io/badge/SpringBoot-3.x-brightgreen)
 ![Java](https://img.shields.io/badge/Java-17-orange)
 ![Maven](https://img.shields.io/badge/Maven-Build-blue)
@@ -8,7 +23,7 @@
 
 ---
 
-## Descripción
+<h2 align="center"> DESCRIPCIÓN</h2>
 
 Este proyecto implementa un Sistema de Gestión de Flotas desarrollado como una API REST con Spring Boot, aplicando el patrón de arquitectura en capas (Controller – Service – Repository).
 
@@ -26,11 +41,14 @@ Es un proyecto académico enfocado en aplicar patrones de software, buenas prác
 
 ---
 
-## Objetivos
+<h2 align="center"> OBJETIVOS</h2>
 
 Desarrollar una API que permita gestionar la operación básica de una flota de transporte de forma organizada, modular y escalable.
 
-## Funcionalidades Principales
+---
+
+<h2 align="center"> FUNCIONALIDADES PRINCIPALES</h2>
+
 ### Monitoreo en Tiempo Real de Vehículos
 
 Implementado de forma simulada mediante coordenadas almacenadas en la base de datos.
@@ -55,7 +73,7 @@ Endpoints principales:
 
 ---
 
-## Optimización de Rutas y Asignación de Cargas
+<h2 align="center"> OPTIMIZACIÓN DE RUTAS Y ASIGNACIÓN DE CARGAS</h2>
 
 Flujo básico:
 
@@ -73,7 +91,7 @@ Esto permite simular un proceso real de despacho logístico sin depender de APIs
 
 ---
 
-## Mantenimiento Predictivo de Vehículos
+<h2 align="center"> MANTENIMIENTO PREDICTIVO DE VEHÍCULOS</h2>
 
 Basado en el kilometraje.
 
@@ -95,7 +113,7 @@ Endpoint:
 
 ---
 
-## Integración con Sistemas de Navegación
+<h2 align="center"> INTEGRACIÓN CON SISTEMAS DE NAVEGACIÓN</h2>
 
 Se genera dinámicamente un enlace de navegación hacia Google Maps:
 
@@ -105,7 +123,7 @@ Este enlace se consulta desde la orden de transporte asignada.
 
 ---
 
-## Seguridad
+<h2 align="center"> SEGURIDAD</h2>
 
 Implementada con:
 
@@ -119,15 +137,16 @@ Implementada con:
 
 Roles:
 
-- ADMIN → Gestión completa
-
-- OPERADOR → Operación logística
+| Rol | Permisos |
+|--------|------|
+| ADMIN  | Gestión completa   |
+| OPERADOR    | Operación logística   |
 
 ---
 
-## Arquitectura del Sistema
+<h2 align="center"> ARQUITECTURA DEL SISTEMA</h2>
 
-### Arquitectura en Capas
+### Arquitectura en Capas - `Controller → Service → Repository → Database`
 
 - Controller → Exposición de endpoints REST
 
@@ -145,7 +164,7 @@ Este enfoque permite:
 
 ---
 
-## Tecnologías Utilizadas
+<h2 align="center"> TECNOLOGÍAS UTILIZADAS</h2>
 
 - Spring Boot
 
@@ -163,7 +182,7 @@ Este enfoque permite:
 
 ---
 
-## Entidades Principales
+<h2 align="center"> ENTIDADES PRINCIPALES</h2>
 
 - Vehiculo
 
