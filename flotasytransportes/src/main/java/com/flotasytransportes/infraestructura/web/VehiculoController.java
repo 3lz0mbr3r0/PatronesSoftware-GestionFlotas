@@ -2,6 +2,8 @@ package com.flotasytransportes.infraestructura.web;
 
 import com.flotasytransportes.aplicacion.servicio.VehiculoService;
 import com.flotasytransportes.dominio.modelo.Vehiculo;
+import com.flotasytransportes.dominio.modelo.TipoVehiculo;
+import com.flotasytransportes.infraestructura.web.dto.VehiculoDTO;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,6 +16,11 @@ public class VehiculoController {
 
     public VehiculoController(VehiculoService vehiculoService) {
         this.vehiculoService = vehiculoService;
+    }
+    
+    @PostMapping
+    public Vehiculo crear(@RequestBody Vehiculo vehiculo) {
+        return vehiculoService.guardar(vehiculo);
     }
 
     @PutMapping("/{id}/ubicacion")
@@ -32,5 +39,11 @@ public class VehiculoController {
     @GetMapping
     public List<Vehiculo> listar() {
         return vehiculoService.listar();
+    }
+    
+    @PostMapping("/{tipo}")
+    public Vehiculo crear(@PathVariable TipoVehiculo tipo,
+                          @RequestBody VehiculoDTO dto) {
+        return vehiculoService.crearVehiculo(tipo, dto);
     }
 }

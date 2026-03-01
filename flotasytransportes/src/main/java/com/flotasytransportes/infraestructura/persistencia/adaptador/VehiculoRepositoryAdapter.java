@@ -1,7 +1,7 @@
 package com.flotasytransportes.infraestructura.persistencia.adaptador;
 
-import com.flotasytransportes.dominio.modelo.EstadoVehiculo;
-import com.flotasytransportes.dominio.modelo.Vehiculo;
+import com.flotasytransportes.dominio.factory.*;
+import com.flotasytransportes.dominio.modelo.*;
 import com.flotasytransportes.dominio.puertos.VehiculoRepositoryPort;
 import com.flotasytransportes.infraestructura.persistencia.entidad.VehiculoEntity;
 import com.flotasytransportes.infraestructura.persistencia.repositorio.VehiculoJpaRepository;
@@ -17,10 +17,13 @@ public class VehiculoRepositoryAdapter implements VehiculoRepositoryPort {
 
     private final VehiculoJpaRepository vehiculoJpaRepository;
 
-    // Constructor obligatorio (inyección por constructor)
     public VehiculoRepositoryAdapter(VehiculoJpaRepository vehiculoJpaRepository) {
         this.vehiculoJpaRepository = vehiculoJpaRepository;
     }
+
+    // =========================
+    // MÉTODOS DEL PUERTO
+    // =========================
 
     @Override
     public Vehiculo guardar(Vehiculo vehiculo) {
@@ -52,7 +55,7 @@ public class VehiculoRepositoryAdapter implements VehiculoRepositoryPort {
     }
 
     // =========================
-    // MÉTODOS DE MAPEO
+    // MAPEO ENTITY → DOMINIO
     // =========================
 
     private Vehiculo mapToDomain(VehiculoEntity entity) {
@@ -61,8 +64,25 @@ public class VehiculoRepositoryAdapter implements VehiculoRepositoryPort {
             return null;
         }
 
-        return new Vehiculo(
-                entity.getId(),
+        VehiculoFactory factory;
+
+        TipoVehiculo tipo = TipoVehiculo.valueOf(entity.getTipo());
+
+        switch (tipo) {
+            case CAMION:
+                factory = new CamionFactory();
+                break;
+            case MOTO:
+                factory = new MotoFactory();
+                break;
+            case FURGON:
+                factory = new FurgonFactory();
+                break;
+            default:
+                throw new IllegalArgumentException("Tipo no soportado");
+        }
+
+        Vehiculo vehiculo = factory.crearVehiculo(
                 entity.getPlaca(),
                 entity.getLatitud(),
                 entity.getLongitud(),
@@ -70,7 +90,16 @@ public class VehiculoRepositoryAdapter implements VehiculoRepositoryPort {
                 entity.getKilometrajeActual(),
                 entity.getLimiteMantenimiento()
         );
+
+        // 🔥 IMPORTANTE: asignar el ID después de crear el objeto
+        vehiculo.setId(entity.getId());
+
+        return vehiculo;
     }
+
+    // =========================
+    // MAPEO DOMINIO → ENTITY
+    // =========================
 
     private VehiculoEntity mapToEntity(Vehiculo vehiculo) {
 
@@ -87,6 +116,17 @@ public class VehiculoRepositoryAdapter implements VehiculoRepositoryPort {
         entity.setEstado(vehiculo.getEstado().name());
         entity.setKilometrajeActual(vehiculo.getKilometrajeActual());
         entity.setLimiteMantenimiento(vehiculo.getLimiteMantenimiento());
+
+        // 🔥 Detectar tipo según la subclase creada por Factory
+        if (vehiculo instanceof Camion) {
+            entity.setTipo(TipoVehiculo.CAMION.name());
+        } else if (vehiculo instanceof Moto) {
+            entity.setTipo(TipoVehiculo.MOTO.name());
+        } else if (vehiculo instanceof Furgon) {
+            entity.setTipo(TipoVehiculo.FURGON.name());
+        } else {
+            throw new IllegalArgumentException("Tipo de vehículo no soportado");
+        }
 
         return entity;
     }
