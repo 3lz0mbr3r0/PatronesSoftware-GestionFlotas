@@ -19,6 +19,10 @@ public class VehiculoEntity {
     @Column(nullable = false)
     private String estado;
 
+    // 🔥 NUEVO CAMPO NECESARIO PARA FACTORY METHOD
+    @Column(nullable = false)
+    private String tipo;
+
     private Double kilometrajeActual;
     private Double limiteMantenimiento;
 
@@ -26,17 +30,21 @@ public class VehiculoEntity {
     }
 
     public VehiculoEntity(Long id, String placa, Double latitud, Double longitud,
-                          String estado, Double kilometrajeActual, Double limiteMantenimiento) {
+                          String estado, String tipo,
+                          Double kilometrajeActual, Double limiteMantenimiento) {
         this.id = id;
         this.placa = placa;
         this.latitud = latitud;
         this.longitud = longitud;
         this.estado = estado;
+        this.tipo = tipo;
         this.kilometrajeActual = kilometrajeActual;
         this.limiteMantenimiento = limiteMantenimiento;
     }
 
+    // ========================
     // GETTERS Y SETTERS
+    // ========================
 
     public Long getId() {
         return id;
@@ -76,6 +84,14 @@ public class VehiculoEntity {
 
     public void setEstado(String estado) {
         this.estado = estado;
+    }
+
+    public String getTipo() {
+        return tipo;
+    }
+
+    public void setTipo(String tipo) {
+        this.tipo = tipo;
     }
 
     public Double getKilometrajeActual() {

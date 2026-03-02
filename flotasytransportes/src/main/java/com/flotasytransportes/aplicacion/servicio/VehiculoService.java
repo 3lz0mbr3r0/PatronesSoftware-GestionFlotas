@@ -2,6 +2,8 @@ package com.flotasytransportes.aplicacion.servicio;
 
 import com.flotasytransportes.dominio.modelo.*;
 import com.flotasytransportes.dominio.puertos.VehiculoRepositoryPort;
+import com.flotasytransportes.dominio.factory.*;
+import com.flotasytransportes.infraestructura.web.dto.VehiculoDTO;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,6 +15,10 @@ public class VehiculoService {
 
     public VehiculoService(VehiculoRepositoryPort vehiculoRepository) {
         this.vehiculoRepository = vehiculoRepository;
+    }
+    
+    public Vehiculo guardar(Vehiculo vehiculo) {
+        return vehiculoRepository.guardar(vehiculo);
     }
 
     public Vehiculo actualizarUbicacion(Long id, Double lat, Double lng) {
@@ -34,4 +40,35 @@ public class VehiculoService {
     public List<Vehiculo> listar() {
         return vehiculoRepository.buscarTodos();
     }
+    
+    public Vehiculo crearVehiculo(TipoVehiculo tipo, VehiculoDTO dto) {
+
+        VehiculoFactory factory;
+
+        switch (tipo) {
+            case CAMION:
+                factory = new CamionFactory();
+                break;
+            case MOTO:
+                factory = new MotoFactory();
+                break;
+            case FURGON:
+                factory = new FurgonFactory();
+                break;
+            default:
+                throw new IllegalArgumentException("Tipo no soportado");
+        }
+
+        Vehiculo vehiculo = factory.crearVehiculo(
+                dto.getPlaca(),
+                dto.getLatitud(),
+                dto.getLongitud(),
+                dto.getEstado(),
+                dto.getKilometrajeActual(),
+                dto.getLimiteMantenimiento()
+        );
+
+        return vehiculoRepository.guardar(vehiculo);
+    }
+    
 }
