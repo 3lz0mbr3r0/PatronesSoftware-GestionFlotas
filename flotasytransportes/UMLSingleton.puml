@@ -1,0 +1,18 @@
+@startuml
+title Singleton - VehiculoService (Gestionado por Spring)
+
+class VehiculoService {
+    - vehiculoRepositoryPort : VehiculoRepositoryPort
+    --
+    + crearVehiculo(tipo, dto) : Vehiculo
+    + listar() : List<Vehiculo>
+}
+
+note right of VehiculoService
+Spring gestiona esta clase
+como Singleton por defecto.
+Solo existe una instancia
+en el contenedor IoC.
+end note
+
+@enduml

@@ -1,0 +1,53 @@
+@startuml
+title Factory Method - Gestión de Flotas
+
+' =========================
+' PRODUCTO
+' =========================
+abstract class Vehiculo {
+    - id : Long
+    - placa : String
+    - latitud : Double
+    - longitud : Double
+    - estado : EstadoVehiculo
+    - kilometrajeActual : Double
+    - limiteMantenimiento : Double
+}
+
+class Camion
+class Moto
+class Furgon
+
+Vehiculo <|-- Camion
+Vehiculo <|-- Moto
+Vehiculo <|-- Furgon
+
+' =========================
+' FACTORY METHOD
+' =========================
+abstract class VehiculoFactory {
+    + crearVehiculo(...) : Vehiculo
+}
+
+class CamionFactory
+class MotoFactory
+class FurgonFactory
+
+VehiculoFactory <|-- CamionFactory
+VehiculoFactory <|-- MotoFactory
+VehiculoFactory <|-- FurgonFactory
+
+CamionFactory ..> Camion : crea
+MotoFactory ..> Moto : crea
+FurgonFactory ..> Furgon : crea
+
+' =========================
+' USO EN SERVICE
+' =========================
+class VehiculoService {
+    + crearVehiculo(tipo, dto) : Vehiculo
+}
+
+VehiculoService ..> VehiculoFactory : usa
+
+@enduml
