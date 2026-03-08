@@ -33,8 +33,8 @@ public class VehiculoRepositoryAdapter implements VehiculoRepositoryPort {
     }
 
     @Override
-    public Optional<Vehiculo> buscarPorId(Long id) {
-        return vehiculoJpaRepository.findById(id)
+    public Optional<Vehiculo> buscarPorPlaca(String placa) {
+        return vehiculoJpaRepository.findById(placa)
                 .map(this::mapToDomain);
     }
 
@@ -91,9 +91,6 @@ public class VehiculoRepositoryAdapter implements VehiculoRepositoryPort {
                 entity.getLimiteMantenimiento()
         );
 
-        // 🔥 IMPORTANTE: asignar el ID después de crear el objeto
-        vehiculo.setId(entity.getId());
-
         return vehiculo;
     }
 
@@ -108,8 +105,7 @@ public class VehiculoRepositoryAdapter implements VehiculoRepositoryPort {
         }
 
         VehiculoEntity entity = new VehiculoEntity();
-
-        entity.setId(vehiculo.getId());
+        
         entity.setPlaca(vehiculo.getPlaca());
         entity.setLatitud(vehiculo.getLatitud());
         entity.setLongitud(vehiculo.getLongitud());

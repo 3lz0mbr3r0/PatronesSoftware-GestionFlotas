@@ -3,6 +3,7 @@ package com.flotasytransportes.aplicacion.servicio;
 import com.flotasytransportes.dominio.modelo.*;
 import com.flotasytransportes.dominio.puertos.VehiculoRepositoryPort;
 import com.flotasytransportes.dominio.factory.*;
+import com.flotasytransportes.dominio.abstractfactory.*;
 import com.flotasytransportes.infraestructura.web.dto.VehiculoDTO;
 import org.springframework.stereotype.Service;
 
@@ -21,16 +22,16 @@ public class VehiculoService {
         return vehiculoRepository.guardar(vehiculo);
     }
 
-    public Vehiculo actualizarUbicacion(Long id, Double lat, Double lng) {
-        Vehiculo vehiculo = vehiculoRepository.buscarPorId(id)
+    public Vehiculo actualizarUbicacion(String placa, Double lat, Double lng) {
+        Vehiculo vehiculo = vehiculoRepository.buscarPorPlaca(placa)
                 .orElseThrow(() -> new RuntimeException("Vehículo no encontrado"));
 
         vehiculo.actualizarUbicacion(lat, lng);
         return vehiculoRepository.guardar(vehiculo);
     }
 
-    public Vehiculo actualizarKilometraje(Long id, Double km) {
-        Vehiculo vehiculo = vehiculoRepository.buscarPorId(id)
+    public Vehiculo actualizarKilometraje(String placa, Double km) {
+        Vehiculo vehiculo = vehiculoRepository.buscarPorPlaca(placa)
                 .orElseThrow(() -> new RuntimeException("Vehículo no encontrado"));
 
         vehiculo.actualizarKilometraje(km);
@@ -43,23 +44,23 @@ public class VehiculoService {
     
     public Vehiculo crearVehiculo(TipoVehiculo tipo, VehiculoDTO dto) {
 
-        VehiculoFactory factory;
+        VehiculoAbstractFactory abstractfactory;
 
         switch (tipo) {
             case CAMION:
-                factory = new CamionFactory();
+            	abstractfactory = new CamionFactory();
                 break;
             case MOTO:
-                factory = new MotoFactory();
+            	abstractfactory = new MotoFactory();
                 break;
             case FURGON:
-                factory = new FurgonFactory();
+            	abstractfactory = new FurgonFactory();
                 break;
             default:
                 throw new IllegalArgumentException("Tipo no soportado");
         }
 
-        Vehiculo vehiculo = factory.crearVehiculo(
+        Vehiculo vehiculo = abstractfactory.crearVehiculo(
                 dto.getPlaca(),
                 dto.getLatitud(),
                 dto.getLongitud(),

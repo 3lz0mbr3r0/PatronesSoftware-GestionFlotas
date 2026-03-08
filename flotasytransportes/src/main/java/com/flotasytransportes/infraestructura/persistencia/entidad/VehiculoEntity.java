@@ -6,11 +6,7 @@ import jakarta.persistence.*;
 @Table(name = "vehiculos")
 public class VehiculoEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(nullable = false)
+	@Id
     private String placa;
 
     private Double latitud;
@@ -29,10 +25,9 @@ public class VehiculoEntity {
     public VehiculoEntity() {
     }
 
-    public VehiculoEntity(Long id, String placa, Double latitud, Double longitud,
+    public VehiculoEntity(String placa, Double latitud, Double longitud,
                           String estado, String tipo,
                           Double kilometrajeActual, Double limiteMantenimiento) {
-        this.id = id;
         this.placa = placa;
         this.latitud = latitud;
         this.longitud = longitud;
@@ -46,13 +41,6 @@ public class VehiculoEntity {
     // GETTERS Y SETTERS
     // ========================
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
 
     public String getPlaca() {
         return placa;

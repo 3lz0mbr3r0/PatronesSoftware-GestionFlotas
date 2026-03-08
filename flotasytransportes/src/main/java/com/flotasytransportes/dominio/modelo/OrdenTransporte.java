@@ -2,24 +2,24 @@ package com.flotasytransportes.dominio.modelo;
 
 public class OrdenTransporte {
 
-    private Long id;
+    private String placa;
     private Double origenLat;
     private Double origenLng;
     private Double destinoLat;
     private Double destinoLng;
     private Long vehiculoId;
 
-    public OrdenTransporte(Long id, Double origenLat, Double origenLng,
+    public OrdenTransporte(String placa, Double origenLat, Double origenLng,
                            Double destinoLat, Double destinoLng) {
-        this.id = id;
+        this.placa = placa;
         this.origenLat = origenLat;
         this.origenLng = origenLng;
         this.destinoLat = destinoLat;
         this.destinoLng = destinoLng;
     }
 
-    public void asignarVehiculo(Long vehiculoId) {
-        this.vehiculoId = vehiculoId;
+    public void asignarVehiculo(String placa) {
+        this.placa = placa;
     }
 
     public String generarLinkNavegacion() {
@@ -29,7 +29,7 @@ public class OrdenTransporte {
     }
 
     // getters
-    public Long getId() { return id; }
+    public String getPlaca() { return placa; }
     public Double getOrigenLat() { return origenLat; }
     public Double getOrigenLng() { return origenLng; }
     public Double getDestinoLat() { return destinoLat; }
