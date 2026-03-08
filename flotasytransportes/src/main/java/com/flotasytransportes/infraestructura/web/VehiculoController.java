@@ -23,17 +23,17 @@ public class VehiculoController {
         return vehiculoService.guardar(vehiculo);
     }
 
-    @PutMapping("/{id}/ubicacion")
-    public Vehiculo actualizarUbicacion(@PathVariable Long id,
+    @PutMapping("/{placa}/ubicacion")
+    public Vehiculo actualizarUbicacion(@PathVariable String placa,
                                         @RequestParam Double lat,
                                         @RequestParam Double lng) {
-        return vehiculoService.actualizarUbicacion(id, lat, lng);
+        return vehiculoService.actualizarUbicacion(placa, lat, lng);
     }
 
-    @PutMapping("/{id}/kilometraje")
-    public Vehiculo actualizarKilometraje(@PathVariable Long id,
+    @PutMapping("/{placa}/kilometraje")
+    public Vehiculo actualizarKilometraje(@PathVariable String placa,
                                           @RequestParam Double km) {
-        return vehiculoService.actualizarKilometraje(id, km);
+        return vehiculoService.actualizarKilometraje(placa, km);
     }
 
     @GetMapping

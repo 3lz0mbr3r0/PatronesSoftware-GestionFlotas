@@ -39,7 +39,7 @@ public class OrdenService {
 		vehiculoRepository.guardar(vehiculoMasCercano);
 
 		// Asignar vehículo a la orden
-		orden.asignarVehiculo(vehiculoMasCercano.getId());
+		orden.asignarVehiculo(vehiculoMasCercano.getPlaca());
 
 		return ordenRepository.guardar(orden);
 	}

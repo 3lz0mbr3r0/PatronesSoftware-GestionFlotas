@@ -7,7 +7,7 @@ import java.util.Optional;
 public interface VehiculoRepositoryPort {
 
     Vehiculo guardar(Vehiculo vehiculo);
-    Optional<Vehiculo> buscarPorId(Long id);
+    Optional<Vehiculo> buscarPorPlaca(String placa);
     List<Vehiculo> buscarDisponibles();
     List<Vehiculo> buscarTodos();
 }
