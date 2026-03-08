@@ -42,6 +42,15 @@ public class VehiculoService {
         return vehiculoRepository.buscarTodos();
     }
     
+    public void eliminarVehiculo(String placa) {
+
+        if (!vehiculoRepository.buscarPorPlaca(placa).isPresent()) {
+            throw new RuntimeException("Vehiculo no encontrado");
+        }
+
+        vehiculoRepository.eliminarPorPlaca(placa);
+    }
+    
     public Vehiculo crearVehiculo(TipoVehiculo tipo, VehiculoDTO dto) {
 
         VehiculoAbstractFactory abstractfactory;

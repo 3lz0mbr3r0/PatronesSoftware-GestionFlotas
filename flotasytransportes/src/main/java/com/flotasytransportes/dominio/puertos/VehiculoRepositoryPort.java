@@ -10,4 +10,6 @@ public interface VehiculoRepositoryPort {
     Optional<Vehiculo> buscarPorPlaca(String placa);
     List<Vehiculo> buscarDisponibles();
     List<Vehiculo> buscarTodos();
+    void eliminarPorPlaca(String placa);
+    
 }
