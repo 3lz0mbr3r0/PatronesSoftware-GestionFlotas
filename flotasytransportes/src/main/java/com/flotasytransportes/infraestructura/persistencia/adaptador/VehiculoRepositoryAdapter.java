@@ -53,6 +53,11 @@ public class VehiculoRepositoryAdapter implements VehiculoRepositoryPort {
                 .map(this::mapToDomain)
                 .collect(Collectors.toList());
     }
+    
+    @Override
+    public void eliminarPorPlaca(String placa) {
+        vehiculoJpaRepository.deleteById(placa);
+    }
 
     // =========================
     // MAPEO ENTITY → DOMINIO
