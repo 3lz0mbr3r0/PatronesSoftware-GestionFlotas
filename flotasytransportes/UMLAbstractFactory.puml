@@ -1,0 +1,67 @@
+@startuml
+
+package "Aplicacion" {
+
+class VehiculoService {
+    - VehiculoRepositoryPort vehiculoRepository
+    + guardar(Vehiculo)
+    + actualizarUbicacion(String placa, Double lat, Double lng)
+    + actualizarKilometraje(String placa, Double km)
+    + listar() : List<Vehiculo>
+    + buscarVehiculo(String placa) : Vehiculo
+    + eliminarVehiculo(String placa)
+    + crearVehiculo(TipoVehiculo tipo, VehiculoDTO dto) : Vehiculo
+}
+
+}
+
+package "Dominio - Abstract Factory" {
+
+interface VehiculoAbstractFactory {
+    + crearVehiculo(String placa, Double latitud, Double longitud,
+      EstadoVehiculo estado, Double kilometrajeActual,
+      Double limiteMantenimiento) : Vehiculo
+}
+
+}
+
+package "Dominio - Factory Method" {
+
+abstract class VehiculoFactory {
+    + crearVehiculo(String placa, Double latitud, Double longitud,
+      EstadoVehiculo estado, Double kilometrajeActual,
+      Double limiteMantenimiento) : Vehiculo
+}
+
+class CamionFactory
+class MotoFactory
+class FurgonFactory
+
+}
+
+package "Modelo de Dominio" {
+
+class Vehiculo
+class Camion
+class Moto
+class Furgon
+
+}
+
+VehiculoService --> VehiculoAbstractFactory
+
+VehiculoAbstractFactory <|.. VehiculoFactory
+
+VehiculoFactory <|-- CamionFactory
+VehiculoFactory <|-- MotoFactory
+VehiculoFactory <|-- FurgonFactory
+
+CamionFactory --> Camion
+MotoFactory --> Moto
+FurgonFactory --> Furgon
+
+Camion --|> Vehiculo
+Moto --|> Vehiculo
+Furgon --|> Vehiculo
+
+@enduml
