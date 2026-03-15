@@ -42,17 +42,17 @@ public class VehiculoController {
     }
     
     @GetMapping("/{placa}")
-    public Vehiculo buscar(@PathVariable String placa) {
+    public Vehiculo buscar(@PathVariable("placa") String placa) {
         return vehiculoService.buscarVehiculo(placa);
     }
     
     @DeleteMapping("/{placa}")
-    public void eliminar(@PathVariable String placa) {
+    public void eliminar(@PathVariable("placa") String placa) {
         vehiculoService.eliminarVehiculo(placa);
     }
     
     @PostMapping("/{tipo}")
-    public Vehiculo crear(@PathVariable TipoVehiculo tipo,
+    public Vehiculo crear(@PathVariable("tipo") TipoVehiculo tipo,
                           @RequestBody VehiculoDTO dto) {
         return vehiculoService.crearVehiculo(tipo, dto);
     }
