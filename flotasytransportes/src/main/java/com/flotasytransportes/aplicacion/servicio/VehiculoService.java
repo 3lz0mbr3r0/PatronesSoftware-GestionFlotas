@@ -81,6 +81,7 @@ public class VehiculoService {
                 dto.getLatitud(),
                 dto.getLongitud(),
                 dto.getEstado(),
+                dto.getTipoEnergia(),
                 dto.getKilometrajeActual(),
                 dto.getLimiteMantenimiento()
         );

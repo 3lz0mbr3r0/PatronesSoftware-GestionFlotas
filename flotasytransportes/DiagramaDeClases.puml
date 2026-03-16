@@ -1,0 +1,107 @@
+@startuml
+
+title Patrones de Diseño - Sistema de Gestión de Flotas
+
+' =========================
+' SINGLETON
+' =========================
+
+class CalculadoraDistanciaService {
+- instance : CalculadoraDistanciaService
++ getInstance()
++ calcularDistancia(lat1, lon1, lat2, lon2)
+}
+
+CalculadoraDistanciaService --> VehiculoService : usado para calcular rutas
+
+' =========================
+' SERVICIO PRINCIPAL
+' =========================
+
+class VehiculoService {
++ crearVehiculo()
++ actualizarUbicacion()
++ actualizarKilometraje()
+}
+
+VehiculoService --> VehiculoFactory : usa
+
+' =========================
+' ABSTRACT FACTORY
+' =========================
+
+interface VehiculoAbstractFactory {
++ crearVehiculo()
+}
+
+abstract class VehiculoFactory {
++ crearVehiculo()
+}
+
+VehiculoFactory ..|> VehiculoAbstractFactory
+
+' =========================
+' FACTORY METHOD
+' =========================
+
+class CamionFactory
+class MotoFactory
+class FurgonFactory
+
+CamionFactory --|> VehiculoFactory
+MotoFactory --|> VehiculoFactory
+FurgonFactory --|> VehiculoFactory
+
+' =========================
+' PRODUCTO
+' =========================
+
+abstract class Vehiculo {
+- placa : String
+- latitud : Double
+- longitud : Double
+- estado : EstadoVehiculo
+- kilometrajeActual : Double
+- limiteMantenimiento : Double
+}
+
+class Camion
+class Moto
+class Furgon
+
+Camion --|> Vehiculo
+Moto --|> Vehiculo
+Furgon --|> Vehiculo
+
+VehiculoFactory --> Vehiculo : crea
+
+' =========================
+' BUILDER (Fluent Builder)
+' =========================
+
+class ReporteMantenimiento {
+- placaVehiculo : String
+- kilometraje : Double
+- fecha : String
+- tipoMantenimiento : String
+- observaciones : String
+- prioridad : String
+- tecnicoResponsable : String
+- taller : String
+- costoEstimado : Double
+- tiempoEstimadoHoras : Integer
+- requiereRepuestos : Boolean
+- nivelDesgaste : String
+- proximoMantenimientoKm : Double
++ build()
+}
+
+note right of ReporteMantenimiento
+Build Moderno - Fluent Builder
+4 campos obligatorios
+8 campos opcionales
+end note
+
+CalculadoraDistanciaService -[hidden]right-> ReporteMantenimiento
+
+@enduml

@@ -92,6 +92,7 @@ public class VehiculoRepositoryAdapter implements VehiculoRepositoryPort {
                 entity.getLatitud(),
                 entity.getLongitud(),
                 EstadoVehiculo.valueOf(entity.getEstado()),
+                TipoEnergia.valueOf(entity.getTipoEnergia()),
                 entity.getKilometrajeActual(),
                 entity.getLimiteMantenimiento()
         );
@@ -115,6 +116,7 @@ public class VehiculoRepositoryAdapter implements VehiculoRepositoryPort {
         entity.setLatitud(vehiculo.getLatitud());
         entity.setLongitud(vehiculo.getLongitud());
         entity.setEstado(vehiculo.getEstado().name());
+        entity.setTipoEnergia(vehiculo.getTipoEnergia().name());
         entity.setKilometrajeActual(vehiculo.getKilometrajeActual());
         entity.setLimiteMantenimiento(vehiculo.getLimiteMantenimiento());
 
