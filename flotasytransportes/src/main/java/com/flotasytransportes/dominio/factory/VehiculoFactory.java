@@ -11,6 +11,7 @@ public abstract class VehiculoFactory implements VehiculoAbstractFactory {
             Double latitud,
             Double longitud,
             EstadoVehiculo estado,
+            TipoEnergia tipoEnergia,
             Double kilometrajeActual,
             Double limiteMantenimiento
     );

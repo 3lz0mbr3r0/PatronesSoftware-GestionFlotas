@@ -6,12 +6,12 @@ public class MotoFactory extends VehiculoFactory {
 
     @Override
     public Vehiculo crearVehiculo(String placa, Double latitud, Double longitud,
-                                  EstadoVehiculo estado,
+                                  EstadoVehiculo estado, TipoEnergia tipoEnergia,
                                   Double kilometrajeActual,
                                   Double limiteMantenimiento) {
 
         return new Moto(placa, latitud, longitud,
-                        estado, kilometrajeActual,
+                        estado, tipoEnergia, kilometrajeActual,
                         limiteMantenimiento);
     }
 }

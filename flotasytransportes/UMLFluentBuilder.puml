@@ -1,0 +1,38 @@
+@startuml
+
+class ReporteMantenimiento {
+- placaVehiculo : String
+- kilometraje : Double
+- fecha : String
+- tipoMantenimiento : String
+- observaciones : String
+- prioridad : String
+- tecnicoResponsable : String
+- taller : String
+- costoEstimado : Double
+- tiempoEstimadoHoras : Integer
+- requiereRepuestos : Boolean
+- nivelDesgaste : String
+- proximoMantenimientoKm : Double
+}
+
+class Builder {
++ placaVehiculo()
++ kilometraje()
++ fecha()
++ tipoMantenimiento()
++ observaciones()
++ prioridad()
++ tecnicoResponsable()
++ taller()
++ costoEstimado()
++ tiempoEstimadoHoras()
++ requiereRepuestos()
++ nivelDesgaste()
++ proximoMantenimientoKm()
++ build()
+}
+
+ReporteMantenimiento *-- Builder
+
+@enduml

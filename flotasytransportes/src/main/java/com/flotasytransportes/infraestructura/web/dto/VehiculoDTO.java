@@ -1,6 +1,7 @@
 package com.flotasytransportes.infraestructura.web.dto;
 
 import com.flotasytransportes.dominio.modelo.EstadoVehiculo;
+import com.flotasytransportes.dominio.modelo.TipoEnergia;
 
 public class VehiculoDTO {
 
@@ -8,6 +9,7 @@ public class VehiculoDTO {
     private Double latitud;
     private Double longitud;
     private EstadoVehiculo estado;
+    private TipoEnergia tipoEnergia;
     private Double kilometrajeActual;
     private Double limiteMantenimiento;
 
@@ -44,6 +46,14 @@ public class VehiculoDTO {
 
 	public void setEstado(EstadoVehiculo estado) {
 		this.estado = estado;
+	}
+
+	public TipoEnergia getTipoEnergia() {
+		return tipoEnergia;
+	}
+
+	public void setTipoEnergia(TipoEnergia tipoEnergia) {
+		this.tipoEnergia = tipoEnergia;
 	}
 
 	public Double getKilometrajeActual() {
