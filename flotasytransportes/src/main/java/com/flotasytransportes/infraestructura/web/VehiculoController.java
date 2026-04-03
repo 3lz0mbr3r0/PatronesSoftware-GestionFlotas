@@ -56,4 +56,15 @@ public class VehiculoController {
                           @RequestBody VehiculoDTO dto) {
         return vehiculoService.crearVehiculo(tipo, dto);
     }
+    
+    
+    // =========================
+    // ENDPOINT PROTOTYPE
+    // =========================
+    
+    @PostMapping("/{placaOriginal}/clonar")
+    public Vehiculo clonarVehiculo(@PathVariable String placaOriginal,
+                                   @RequestBody VehiculoDTO dto) {
+        return vehiculoService.clonarVehiculo(placaOriginal, dto);
+    }
 }
