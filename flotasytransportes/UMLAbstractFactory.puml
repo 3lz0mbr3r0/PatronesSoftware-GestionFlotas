@@ -20,7 +20,7 @@ package "Dominio - Abstract Factory" {
 interface VehiculoAbstractFactory {
     + crearVehiculo(String placa, Double latitud, Double longitud,
       EstadoVehiculo estado, Double kilometrajeActual,
-      Double limiteMantenimiento) : Vehiculo
+      TipoEnergia tipoEnergia, Double limiteMantenimiento) : Vehiculo
 }
 
 }
@@ -30,7 +30,7 @@ package "Dominio - Factory Method" {
 abstract class VehiculoFactory {
     + crearVehiculo(String placa, Double latitud, Double longitud,
       EstadoVehiculo estado, Double kilometrajeActual,
-      Double limiteMantenimiento) : Vehiculo
+      TipoEnergia tipoEnergia, Double limiteMantenimiento) : Vehiculo
 }
 
 class CamionFactory

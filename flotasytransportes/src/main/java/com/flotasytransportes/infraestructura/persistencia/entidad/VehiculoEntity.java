@@ -14,6 +14,9 @@ public class VehiculoEntity {
 
     @Column(nullable = false)
     private String estado;
+    
+    @Column(nullable = false)
+    private String tipoEnergia;
 
     // 🔥 NUEVO CAMPO NECESARIO PARA FACTORY METHOD
     @Column(nullable = false)
@@ -26,12 +29,13 @@ public class VehiculoEntity {
     }
 
     public VehiculoEntity(String placa, Double latitud, Double longitud,
-                          String estado, String tipo,
+                          String estado, String tipoEnergia, String tipo,
                           Double kilometrajeActual, Double limiteMantenimiento) {
         this.placa = placa;
         this.latitud = latitud;
         this.longitud = longitud;
         this.estado = estado;
+        this.tipoEnergia = tipoEnergia;
         this.tipo = tipo;
         this.kilometrajeActual = kilometrajeActual;
         this.limiteMantenimiento = limiteMantenimiento;
@@ -74,7 +78,15 @@ public class VehiculoEntity {
         this.estado = estado;
     }
 
-    public String getTipo() {
+    public String getTipoEnergia() {
+		return tipoEnergia;
+	}
+
+	public void setTipoEnergia(String tipoEnergia) {
+		this.tipoEnergia = tipoEnergia;
+	}
+
+	public String getTipo() {
         return tipo;
     }
 
