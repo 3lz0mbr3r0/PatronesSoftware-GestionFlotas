@@ -19,4 +19,5 @@ public class CalculadoraDistanciaService {
 
 		return RADIO_TIERRA_KM * c;
 	}
+	
 }
