@@ -15,7 +15,6 @@ public class OrdenController {
         this.ordenService = ordenService;
     }
 
-    // 🔥 Endpoint que crea y asigna automáticamente el vehículo más cercano
     @PostMapping("/asignar")
     public OrdenTransporte crearYAsignar(@RequestBody OrdenTransporte orden) {
         return ordenService.crearYAsignarOrden(orden);
