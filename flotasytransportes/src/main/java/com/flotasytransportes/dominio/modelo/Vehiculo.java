@@ -10,6 +10,9 @@ public abstract class Vehiculo {
     protected Double kilometrajeActual;
     protected Double limiteMantenimiento;
     
+    public Vehiculo() {
+    }
+    
 	public Vehiculo(String placa, Double latitud, Double longitud, EstadoVehiculo estado, TipoEnergia tipoEnergia,
 			Double kilometrajeActual, Double limiteMantenimiento) {
 		this.placa = placa;
@@ -21,6 +24,35 @@ public abstract class Vehiculo {
 		this.limiteMantenimiento = limiteMantenimiento;
 	}
 
+
+	// =========================
+    // CONSTRUCTOR COPIA (PROTOTYPE)
+    // =========================
+	
+    public Vehiculo(Vehiculo source) {
+        if (source != null) {
+            this.placa = source.placa;
+            this.latitud = source.latitud;
+            this.longitud = source.longitud;
+            this.estado = source.estado;
+            this.tipoEnergia = source.tipoEnergia;
+            this.kilometrajeActual = source.kilometrajeActual;
+            this.limiteMantenimiento = source.limiteMantenimiento;
+        }
+    }
+
+    
+    // =========================
+    // MÉTODO PROTOTYPE
+    // =========================
+    
+    public abstract Vehiculo clonar();
+
+    
+    // =========================
+    // LÓGICA DE NEGOCIO
+    // =========================
+    
 	public void actualizarUbicacion(Double lat, Double lng) {
         this.latitud = lat;
         this.longitud = lng;
@@ -38,7 +70,9 @@ public abstract class Vehiculo {
     }
     
     
-    // getters
+    // =========================
+    // GETTERS Y SETTERS
+    // =========================
     
     public String getPlaca() { return placa; }
     public Double getLatitud() { return latitud; }
@@ -47,8 +81,6 @@ public abstract class Vehiculo {
     public TipoEnergia getTipoEnergia() { return tipoEnergia; }
     public Double getKilometrajeActual() { return kilometrajeActual; }
     public Double getLimiteMantenimiento() { return limiteMantenimiento; }
-    
-    // setters
 
 	public void setPlaca(String placa) {
 		this.placa = placa;

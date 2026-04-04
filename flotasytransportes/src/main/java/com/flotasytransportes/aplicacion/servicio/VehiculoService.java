@@ -58,6 +58,7 @@ public class VehiculoService {
         vehiculoRepository.eliminarPorPlaca(placa);
     }
     
+    
     public Vehiculo crearVehiculo(TipoVehiculo tipo, VehiculoDTO dto) {
 
         VehiculoAbstractFactory abstractfactory;
@@ -87,6 +88,47 @@ public class VehiculoService {
         );
 
         return vehiculoRepository.guardar(vehiculo);
+    }
+    
+    
+    // =========================
+    // MÉTODO PROTOTYPE
+    // =========================
+    
+    public Vehiculo clonarVehiculo(String placaOriginal, VehiculoDTO dto) {
+
+        Vehiculo original = vehiculoRepository.buscarPorPlaca(placaOriginal)
+                .orElseThrow(() -> new RuntimeException("Vehículo original no encontrado"));
+
+        Vehiculo clon = original.clonar();
+
+        clon.setPlaca(dto.getPlaca());
+
+        if (dto.getLatitud() != null) {
+            clon.setLatitud(dto.getLatitud());
+        }
+
+        if (dto.getLongitud() != null) {
+            clon.setLongitud(dto.getLongitud());
+        }
+
+        if (dto.getEstado() != null) {
+            clon.setEstado(dto.getEstado());
+        }
+
+        if (dto.getTipoEnergia() != null) {
+            clon.setTipoEnergia(dto.getTipoEnergia());
+        }
+
+        if (dto.getKilometrajeActual() != null) {
+            clon.setKilometrajeActual(dto.getKilometrajeActual());
+        }
+
+        if (dto.getLimiteMantenimiento() != null) {
+            clon.setLimiteMantenimiento(dto.getLimiteMantenimiento());
+        }
+
+        return vehiculoRepository.guardar(clon);
     }
     
 }
