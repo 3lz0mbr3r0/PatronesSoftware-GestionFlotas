@@ -1,0 +1,74 @@
+@startuml
+title Patrón Prototype - Gestión de Flotas
+
+skinparam classAttributeIconSize 0
+
+abstract class Vehiculo {
+    - placa : String
+    - latitud : Double
+    - longitud : Double
+    - estado : EstadoVehiculo
+    - tipoEnergia : TipoEnergia
+    - kilometrajeActual : Double
+    - limiteMantenimiento : Double
+
+    + Vehiculo()
+    + Vehiculo(placa, latitud, longitud, estado, tipoEnergia, kilometrajeActual, limiteMantenimiento)
+    + Vehiculo(source : Vehiculo)
+    + clonar() : Vehiculo
+    + actualizarUbicacion(latitud : Double, longitud : Double) : void
+    + actualizarKilometraje(km : Double) : void
+}
+
+class Camion {
+    + Camion()
+    + Camion(placa, latitud, longitud, estado, tipoEnergia, kilometrajeActual, limiteMantenimiento)
+    + Camion(source : Camion)
+    + clonar() : Vehiculo
+}
+
+class Moto {
+    + Moto()
+    + Moto(placa, latitud, longitud, estado, tipoEnergia, kilometrajeActual, limiteMantenimiento)
+    + Moto(source : Moto)
+    + clonar() : Vehiculo
+}
+
+class Furgon {
+    + Furgon()
+    + Furgon(placa, latitud, longitud, estado, tipoEnergia, kilometrajeActual, limiteMantenimiento)
+    + Furgon(source : Furgon)
+    + clonar() : Vehiculo
+}
+
+class VehiculoService {
+    - vehiculoRepository : VehiculoRepositoryPort
+    + clonarVehiculo(placaOriginal : String, dto : VehiculoDTO) : Vehiculo
+}
+
+interface VehiculoRepositoryPort {
+    + guardar(vehiculo : Vehiculo) : Vehiculo
+    + buscarPorPlaca(placa : String) : Optional<Vehiculo>
+}
+
+class VehiculoDTO
+
+class EstadoVehiculo
+class TipoEnergia
+
+Vehiculo <|-- Camion
+Vehiculo <|-- Moto
+Vehiculo <|-- Furgon
+
+VehiculoService --> Vehiculo : usa clonar()
+VehiculoService --> VehiculoRepositoryPort
+VehiculoService --> VehiculoDTO
+
+Vehiculo --> EstadoVehiculo
+Vehiculo --> TipoEnergia
+
+' --- Orden visual ---
+Camion -[hidden]down-> Moto
+Moto -[hidden]right-> Furgon
+
+@enduml
