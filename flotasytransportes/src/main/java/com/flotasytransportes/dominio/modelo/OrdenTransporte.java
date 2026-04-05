@@ -2,24 +2,27 @@ package com.flotasytransportes.dominio.modelo;
 
 public class OrdenTransporte {
 
-    private String placa;
+    private String codigoOrden;
     private Double origenLat;
     private Double origenLng;
     private Double destinoLat;
     private Double destinoLng;
-    private Long vehiculoId;
+    private String vehiculoPlaca;
 
-    public OrdenTransporte(String placa, Double origenLat, Double origenLng,
+    public OrdenTransporte() {
+    }
+
+    public OrdenTransporte(String codigoOrden, Double origenLat, Double origenLng,
                            Double destinoLat, Double destinoLng) {
-        this.placa = placa;
+        this.codigoOrden = codigoOrden;
         this.origenLat = origenLat;
         this.origenLng = origenLng;
         this.destinoLat = destinoLat;
         this.destinoLng = destinoLng;
     }
 
-    public void asignarVehiculo(String placa) {
-        this.placa = placa;
+    public void asignarVehiculo(String vehiculoPlaca) {
+        this.vehiculoPlaca = vehiculoPlaca;
     }
 
     public String generarLinkNavegacion() {
@@ -28,11 +31,52 @@ public class OrdenTransporte {
                 + destinoLat + "," + destinoLng;
     }
 
-    // getters
-    public String getPlaca() { return placa; }
-    public Double getOrigenLat() { return origenLat; }
-    public Double getOrigenLng() { return origenLng; }
-    public Double getDestinoLat() { return destinoLat; }
-    public Double getDestinoLng() { return destinoLng; }
-    public Long getVehiculoId() { return vehiculoId; }
+    // Getters y Setters
+    public String getCodigoOrden() {
+        return codigoOrden;
+    }
+
+    public void setCodigoOrden(String codigoOrden) {
+        this.codigoOrden = codigoOrden;
+    }
+
+    public Double getOrigenLat() {
+        return origenLat;
+    }
+
+    public void setOrigenLat(Double origenLat) {
+        this.origenLat = origenLat;
+    }
+
+    public Double getOrigenLng() {
+        return origenLng;
+    }
+
+    public void setOrigenLng(Double origenLng) {
+        this.origenLng = origenLng;
+    }
+
+    public Double getDestinoLat() {
+        return destinoLat;
+    }
+
+    public void setDestinoLat(Double destinoLat) {
+        this.destinoLat = destinoLat;
+    }
+
+    public Double getDestinoLng() {
+        return destinoLng;
+    }
+
+    public void setDestinoLng(Double destinoLng) {
+        this.destinoLng = destinoLng;
+    }
+
+    public String getVehiculoPlaca() {
+        return vehiculoPlaca;
+    }
+
+    public void setVehiculoPlaca(String vehiculoPlaca) {
+        this.vehiculoPlaca = vehiculoPlaca;
+    }
 }
