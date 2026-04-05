@@ -16,7 +16,7 @@ public class DistanciaAdapter implements DistanciaServicePort {
 
     @Override
     public double calcularDistancia(double lat1, double lon1, double lat2, double lon2) {
+        System.out.println("[ADAPTER - DistanciaAdapter] Adaptando solicitud de cálculo...");
         return calculadoraDistanciaService.calcularDistancia(lat1, lon1, lat2, lon2);
     }
-    
 }

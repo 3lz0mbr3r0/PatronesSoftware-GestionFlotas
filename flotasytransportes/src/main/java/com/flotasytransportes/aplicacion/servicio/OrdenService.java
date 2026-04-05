@@ -22,10 +22,26 @@ public class OrdenService {
 
     public OrdenTransporte crearYAsignarOrden(OrdenTransporte orden) {
 
+        System.out.println("\n========== DEMOSTRACIÓN ADAPTER ==========");
+        System.out.println("[CLIENTE - OrdenService] Creando orden: " + orden.getCodigoOrden());
+        System.out.println("[CLIENTE] Origen: (" + orden.getOrigenLat() + ", " + orden.getOrigenLng() + ")");
+        System.out.println("[CLIENTE] Buscando vehículos disponibles...");
+
         List<Vehiculo> disponibles = vehiculoRepository.buscarDisponibles();
 
         if (disponibles.isEmpty()) {
             throw new RuntimeException("No hay vehículos disponibles");
+        }
+
+        for (Vehiculo v : disponibles) {
+            double distancia = distanciaService.calcularDistancia(
+                    orden.getOrigenLat(),
+                    orden.getOrigenLng(),
+                    v.getLatitud(),
+                    v.getLongitud()
+            );
+
+            System.out.println("[CLIENTE] Vehículo " + v.getPlaca() + " está a " + distancia + " km");
         }
 
         Vehiculo vehiculoMasCercano = disponibles.stream()
@@ -37,12 +53,16 @@ public class OrdenService {
                 )))
                 .orElseThrow();
 
-        // Cambiar estado del vehículo
+        System.out.println("[CLIENTE] Vehículo más cercano seleccionado: " + vehiculoMasCercano.getPlaca());
+
         vehiculoMasCercano.cambiarEstado(EstadoVehiculo.EN_RUTA);
         vehiculoRepository.guardar(vehiculoMasCercano);
 
-        // Asignar vehículo a la orden
         orden.asignarVehiculo(vehiculoMasCercano.getPlaca());
+
+        System.out.println("[CLIENTE] Orden asignada al vehículo: " + orden.getVehiculoPlaca());
+        System.out.println("[CLIENTE] Link de navegación: " + orden.generarLinkNavegacion());
+        System.out.println("==========================================\n");
 
         return orden;
     }

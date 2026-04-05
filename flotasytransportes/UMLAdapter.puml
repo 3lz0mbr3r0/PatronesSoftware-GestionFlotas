@@ -1,0 +1,60 @@
+@startuml
+title Patrón Adapter - Cálculo de Distancia
+
+skinparam classAttributeIconSize 0
+
+class OrdenService {
+    - vehiculoRepository : VehiculoRepositoryPort
+    - distanciaService : DistanciaServicePort
+    + crearYAsignarOrden(orden : OrdenTransporte) : OrdenTransporte
+}
+
+interface DistanciaServicePort {
+    + calcularDistancia(lat1 : double, lon1 : double, lat2 : double, lon2 : double) : double
+}
+
+class DistanciaAdapter {
+    - calculadoraDistanciaService : CalculadoraDistanciaService
+    + calcularDistancia(lat1 : double, lon1 : double, lat2 : double, lon2 : double) : double
+}
+
+class CalculadoraDistanciaService {
+    - RADIO_TIERRA_KM : double
+    + calcularDistancia(lat1 : double, lon1 : double, lat2 : double, lon2 : double) : double
+}
+
+class OrdenTransporte {
+    - codigoOrden : String
+    - origenLat : Double
+    - origenLng : Double
+    - destinoLat : Double
+    - destinoLng : Double
+    - vehiculoPlaca : String
+    + asignarVehiculo(vehiculoPlaca : String) : void
+    + generarLinkNavegacion() : String
+}
+
+class Vehiculo {
+    - placa : String
+    - latitud : Double
+    - longitud : Double
+    + cambiarEstado(estado : EstadoVehiculo) : void
+    + getPlaca() : String
+    + getLatitud() : Double
+    + getLongitud() : Double
+}
+
+interface VehiculoRepositoryPort {
+    + buscarDisponibles() : List<Vehiculo>
+    + guardar(vehiculo : Vehiculo) : Vehiculo
+}
+
+OrdenService --> DistanciaServicePort
+OrdenService --> VehiculoRepositoryPort
+OrdenService --> OrdenTransporte
+OrdenService --> Vehiculo
+
+DistanciaServicePort <|.. DistanciaAdapter
+DistanciaAdapter --> CalculadoraDistanciaService
+
+@enduml
