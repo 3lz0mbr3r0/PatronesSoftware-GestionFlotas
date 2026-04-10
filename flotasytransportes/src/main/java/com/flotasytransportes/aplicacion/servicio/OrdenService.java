@@ -1,5 +1,6 @@
 package com.flotasytransportes.aplicacion.servicio;
 
+import com.flotasytransportes.aplicacion.rutas.decorator.*;
 import com.flotasytransportes.aplicacion.rutas.ServicioRutas;
 import com.flotasytransportes.dominio.modelo.*;
 import com.flotasytransportes.dominio.puertos.DistanciaServicePort;
@@ -27,7 +28,7 @@ public class OrdenService {
 
     public OrdenTransporte crearYAsignarOrden(OrdenTransporte orden) {
 
-        System.out.println("\n========== DEMOSTRACIÓN ADAPTER + BRIDGE ==========");
+        System.out.println("\n========== DEMOSTRACIÓN ADAPTER + BRIDGE + DECORATOR ==========");
         System.out.println("[CLIENTE - OrdenService] Creando orden: " + orden.getCodigoOrden());
 
         List<Vehiculo> disponibles = vehiculoRepository.buscarDisponibles();
@@ -59,7 +60,7 @@ public class OrdenService {
         System.out.println("[CLIENTE] Vehículo más cercano: " + vehiculoMasCercano.getPlaca());
 
         // =========================
-        // PATRON BRIGDE
+        // PATRON BRIDGE
         // =========================
         System.out.println("[CLIENTE] Generando ruta con Bridge...");
 
@@ -68,8 +69,26 @@ public class OrdenService {
                 vehiculoMasCercano.getLatitud() + "," + vehiculoMasCercano.getLongitud()
         );
 
-        System.out.println("[CLIENTE] Distancia de ruta: " + ruta.getDistancia());
+        System.out.println("[CLIENTE] Distancia base: " + ruta.getDistancia());
 
+        // =========================
+        // PATRON DECORATOR
+        // =========================
+        System.out.println("[CLIENTE] Aplicando decoradores a la ruta...");
+
+        RutaComponent componente = new RutaBaseComponent();
+
+        componente = new TraficoDecorator(componente);
+        componente = new PeajeDecorator(componente);
+        componente = new ClimaDecorator(componente);
+
+        ruta = componente.procesarRuta(ruta);
+
+        System.out.println("[CLIENTE] Ruta final con decoradores: " + ruta.getDistancia());
+
+        // =========================
+        // FINAL
+        // =========================
         vehiculoMasCercano.cambiarEstado(EstadoVehiculo.EN_RUTA);
         vehiculoRepository.guardar(vehiculoMasCercano);
 
