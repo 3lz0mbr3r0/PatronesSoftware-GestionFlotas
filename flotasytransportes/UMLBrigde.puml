@@ -1,0 +1,71 @@
+@startuml
+title Patrón Bridge - Sistema de Rutas (Gestión de Flotas)
+
+skinparam classAttributeIconSize 0
+
+' =========================
+' ABSTRACCIÓN
+' =========================
+abstract class ServicioRutas {
+    - navegacionAPI : NavegacionAPI
+    + generarRuta(origen: String, destino: String) : Ruta
+}
+
+class RutaRapidaService {
+    + generarRuta(origen: String, destino: String) : Ruta
+}
+
+class RutaEconomicaService {
+    + generarRuta(origen: String, destino: String) : Ruta
+}
+
+ServicioRutas <|-- RutaRapidaService
+ServicioRutas <|-- RutaEconomicaService
+
+ServicioRutas --> NavegacionAPI : usa (Bridge)
+
+
+' =========================
+' IMPLEMENTACIÓN
+' =========================
+interface NavegacionAPI {
+    + calcularRuta(origen: String, destino: String) : Ruta
+    + calcularDistancia(origen: String, destino: String) : double
+}
+
+class GoogleMapsAPI {
+    + calcularRuta(origen: String, destino: String) : Ruta
+    + calcularDistancia(origen: String, destino: String) : double
+}
+
+class OpenStreetMapAPI {
+    + calcularRuta(origen: String, destino: String) : Ruta
+    + calcularDistancia(origen: String, destino: String) : double
+}
+
+NavegacionAPI <|.. GoogleMapsAPI
+NavegacionAPI <|.. OpenStreetMapAPI
+
+
+' =========================
+' MODELO
+' =========================
+class Ruta {
+    - origen : String
+    - destino : String
+    - distancia : double
+}
+
+
+' =========================
+' CLIENTE
+' =========================
+class OrdenService {
+    - servicioRutas : ServicioRutas
+    + crearYAsignarOrden(orden: OrdenTransporte) : OrdenTransporte
+}
+
+OrdenService --> ServicioRutas : usa
+
+
+@enduml

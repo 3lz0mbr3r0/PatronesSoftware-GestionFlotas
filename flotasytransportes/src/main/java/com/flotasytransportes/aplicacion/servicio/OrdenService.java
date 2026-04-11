@@ -1,5 +1,7 @@
 package com.flotasytransportes.aplicacion.servicio;
 
+import com.flotasytransportes.aplicacion.rutas.decorator.*;
+import com.flotasytransportes.aplicacion.rutas.ServicioRutas;
 import com.flotasytransportes.dominio.modelo.*;
 import com.flotasytransportes.dominio.puertos.DistanciaServicePort;
 import com.flotasytransportes.dominio.puertos.VehiculoRepositoryPort;
@@ -13,19 +15,21 @@ public class OrdenService {
 
     private final VehiculoRepositoryPort vehiculoRepository;
     private final DistanciaServicePort distanciaService;
+    private final ServicioRutas servicioRutas;
 
     public OrdenService(VehiculoRepositoryPort vehiculoRepository,
-                        DistanciaServicePort distanciaService) {
+                        DistanciaServicePort distanciaService,
+                        ServicioRutas servicioRutas) {
+
         this.vehiculoRepository = vehiculoRepository;
         this.distanciaService = distanciaService;
+        this.servicioRutas = servicioRutas;
     }
 
     public OrdenTransporte crearYAsignarOrden(OrdenTransporte orden) {
 
-        System.out.println("\n========== DEMOSTRACIÓN ADAPTER ==========");
+        System.out.println("\n========== DEMOSTRACIÓN ADAPTER + BRIDGE + DECORATOR ==========");
         System.out.println("[CLIENTE - OrdenService] Creando orden: " + orden.getCodigoOrden());
-        System.out.println("[CLIENTE] Origen: (" + orden.getOrigenLat() + ", " + orden.getOrigenLng() + ")");
-        System.out.println("[CLIENTE] Buscando vehículos disponibles...");
 
         List<Vehiculo> disponibles = vehiculoRepository.buscarDisponibles();
 
@@ -53,15 +57,44 @@ public class OrdenService {
                 )))
                 .orElseThrow();
 
-        System.out.println("[CLIENTE] Vehículo más cercano seleccionado: " + vehiculoMasCercano.getPlaca());
+        System.out.println("[CLIENTE] Vehículo más cercano: " + vehiculoMasCercano.getPlaca());
 
+        // =========================
+        // PATRON BRIDGE
+        // =========================
+        System.out.println("[CLIENTE] Generando ruta con Bridge...");
+
+        Ruta ruta = servicioRutas.generarRuta(
+                orden.getOrigenLat() + "," + orden.getOrigenLng(),
+                vehiculoMasCercano.getLatitud() + "," + vehiculoMasCercano.getLongitud()
+        );
+
+        System.out.println("[CLIENTE] Distancia base: " + ruta.getDistancia());
+
+        // =========================
+        // PATRON DECORATOR
+        // =========================
+        System.out.println("[CLIENTE] Aplicando decoradores a la ruta...");
+
+        RutaComponent componente = new RutaBaseComponent();
+
+        componente = new TraficoDecorator(componente);
+        componente = new PeajeDecorator(componente);
+        componente = new ClimaDecorator(componente);
+
+        ruta = componente.procesarRuta(ruta);
+
+        System.out.println("[CLIENTE] Ruta final con decoradores: " + ruta.getDistancia());
+
+        // =========================
+        // FINAL
+        // =========================
         vehiculoMasCercano.cambiarEstado(EstadoVehiculo.EN_RUTA);
         vehiculoRepository.guardar(vehiculoMasCercano);
 
         orden.asignarVehiculo(vehiculoMasCercano.getPlaca());
 
-        System.out.println("[CLIENTE] Orden asignada al vehículo: " + orden.getVehiculoPlaca());
-        System.out.println("[CLIENTE] Link de navegación: " + orden.generarLinkNavegacion());
+        System.out.println("[CLIENTE] Orden asignada correctamente");
         System.out.println("==========================================\n");
 
         return orden;
