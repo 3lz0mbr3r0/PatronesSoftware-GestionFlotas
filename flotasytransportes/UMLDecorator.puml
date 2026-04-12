@@ -1,0 +1,70 @@
+@startuml
+title Patrón Decorator - Procesamiento de Rutas (Gestión de Flotas)
+
+skinparam classAttributeIconSize 0
+
+' =========================
+' COMPONENTE
+' =========================
+interface RutaComponent {
+    + procesarRuta(ruta: Ruta) : Ruta
+}
+
+' =========================
+' COMPONENTE BASE
+' =========================
+class RutaBaseComponent {
+    + procesarRuta(ruta: Ruta) : Ruta
+}
+
+RutaComponent <|.. RutaBaseComponent
+
+' =========================
+' DECORADOR BASE
+' =========================
+abstract class RutaDecorator {
+    - wrappee : RutaComponent
+    + procesarRuta(ruta: Ruta) : Ruta
+}
+
+RutaComponent <|.. RutaDecorator
+RutaDecorator --> RutaComponent : envuelve
+
+' =========================
+' DECORADORES CONCRETOS
+' =========================
+class TraficoDecorator {
+    + procesarRuta(ruta: Ruta) : Ruta
+}
+
+class PeajeDecorator {
+    + procesarRuta(ruta: Ruta) : Ruta
+}
+
+class ClimaDecorator {
+    + procesarRuta(ruta: Ruta) : Ruta
+}
+
+RutaDecorator <|-- TraficoDecorator
+RutaDecorator <|-- PeajeDecorator
+RutaDecorator <|-- ClimaDecorator
+
+' =========================
+' MODELO
+' =========================
+class Ruta {
+    - origen : String
+    - destino : String
+    - distancia : double
+}
+
+' =========================
+' CLIENTE
+' =========================
+class OrdenService {
+    + crearYAsignarOrden(orden: OrdenTransporte) : OrdenTransporte
+}
+
+OrdenService --> RutaComponent : usa
+
+@enduml
