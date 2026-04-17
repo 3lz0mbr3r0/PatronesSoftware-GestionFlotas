@@ -1,0 +1,86 @@
+@startuml
+title Patrón Composite - Sistema de Rutas (Gestión de Flotas)
+
+skinparam classAttributeIconSize 0
+
+' =========================
+' COMPONENT (Interface)
+' =========================
+interface RutaComponent {
+    + procesarRuta(ruta: Ruta) : Ruta
+    + getDistanciaTotal() : double
+    + getDescripcionRuta() : String
+    + getSegmentos() : List<RutaComponent>
+    + addSegmento(segmento: RutaComponent)
+    + removeSegmento(segmento: RutaComponent)
+    + isCompuesto() : boolean
+}
+
+' =========================
+' LEAF (Componente simple)
+' =========================
+class RutaSimpleComponent {
+    - ruta : Ruta
+    - ajusteDistancia : double
+    + procesarRuta(ruta: Ruta) : Ruta
+    + getDistanciaTotal() : double
+    + getDescripcionRuta() : String
+    + getSegmentos() : List<RutaComponent>
+    + addSegmento(segmento: RutaComponent)
+    + removeSegmento(segmento: RutaComponent)
+    + isCompuesto() : boolean
+    + getRuta() : Ruta
+}
+
+RutaComponent <|.. RutaSimpleComponent
+
+' =========================
+' COMPOSITE (Componente compuesto)
+' =========================
+class RutaCompuestaComponent {
+    - nombreRuta : String
+    - segmentos : List<RutaComponent>
+    + procesarRuta(ruta: Ruta) : Ruta
+    + getDistanciaTotal() : double
+    + getDescripcionRuta() : String
+    + getSegmentos() : List<RutaComponent>
+    + addSegmento(segmento: RutaComponent)
+    + removeSegmento(segmento: RutaComponent)
+    + isCompuesto() : boolean
+    + getCantidadSegmentos() : int
+}
+
+RutaComponent <|.. RutaCompuestaComponent
+RutaCompuestaComponent o-- "*" RutaComponent : segmentos
+
+' =========================
+' INTEGRACIÓN CON DECORATOR
+' =========================
+note right of RutaComponent
+  Los decoradores (TraficoDecorator, PeajeDecorator, ClimaDecorator)
+  implementan RutaComponent y pueden envolver tanto hojas
+  como compuestos, gracias al polimorfismo del Composite.
+end note
+
+' =========================
+' MODELO
+' =========================
+class Ruta {
+    - origen : String
+    - destino : String
+    - distancia : double
+}
+
+' =========================
+' CLIENTE
+' =========================
+class OrdenService {
+    - vehiculoRepository : VehiculoRepositoryPort
+    - distanciaService : DistanciaServicePort
+    - servicioRutas : ServicioRutas
+    + crearYAsignarOrden(orden: OrdenTransporte) : OrdenTransporte
+}
+
+OrdenService --> RutaComponent : usa
+
+@enduml

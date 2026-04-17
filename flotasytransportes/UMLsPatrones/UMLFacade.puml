@@ -1,0 +1,75 @@
+@startuml
+title Patrón Facade - Sistema de Gestión de Flotas
+
+skinparam classAttributeIconSize 0
+
+' =========================
+' CLIENTE (Controlador)
+' =========================
+class OrdenController {
+    - ordenTransporteFacade : OrdenTransporteFacade
+    + crearYAsignar(orden: OrdenTransporte) : OrdenTransporte
+}
+
+' =========================
+' FACADE
+' =========================
+class OrdenTransporteFacade {
+    - ordenService : OrdenService
+    + crearYAsignarOrden(orden: OrdenTransporte) : OrdenTransporte
+}
+
+' =========================
+' SUBSISTEMA (Servicios)
+' =========================
+class OrdenService {
+    - vehiculoRepository : VehiculoRepositoryPort
+    - distanciaService : DistanciaServicePort
+    - servicioRutas : ServicioRutas
+    + crearYAsignarOrden(orden: OrdenTransporte) : OrdenTransporte
+}
+
+class VehiculoRepositoryPort {
+    + buscarDisponibles() : List<Vehiculo>
+    + guardar(vehiculo: Vehiculo)
+}
+
+class DistanciaServicePort {
+    + calcularDistancia(lat1, lng1, lat2, lng2) : double
+}
+
+class ServicioRutas {
+    + generarRuta(origen, destino) : Ruta
+}
+
+' =========================
+' MODELOS
+' =========================
+class OrdenTransporte {
+    - codigoOrden : String
+    - origenLat, origenLng : Double
+    - destinoLat, destinoLng : Double
+    - vehiculoPlaca : String
+}
+
+class Ruta {
+    - origen : String
+    - destino : String
+    - distancia : double
+}
+
+' =========================
+' RELACIONES
+' =========================
+OrdenController --> OrdenTransporteFacade : usa
+
+OrdenTransporteFacade --> OrdenService : delega
+
+OrdenService --> VehiculoRepositoryPort : consulta
+OrdenService --> DistanciaServicePort : calcula
+OrdenService --> ServicioRutas : genera rutas
+OrdenService --> Ruta : procesa
+
+OrdenTransporte --> Ruta : contiene
+
+@enduml

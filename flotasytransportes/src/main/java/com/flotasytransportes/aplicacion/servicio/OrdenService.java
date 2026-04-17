@@ -2,6 +2,7 @@ package com.flotasytransportes.aplicacion.servicio;
 
 import com.flotasytransportes.aplicacion.rutas.decorator.*;
 import com.flotasytransportes.aplicacion.rutas.ServicioRutas;
+import com.flotasytransportes.aplicacion.rutas.composite.*;
 import com.flotasytransportes.dominio.modelo.*;
 import com.flotasytransportes.dominio.puertos.DistanciaServicePort;
 import com.flotasytransportes.dominio.puertos.VehiculoRepositoryPort;
@@ -28,7 +29,7 @@ public class OrdenService {
 
     public OrdenTransporte crearYAsignarOrden(OrdenTransporte orden) {
 
-        System.out.println("\n========== DEMOSTRACIÓN ADAPTER + BRIDGE + DECORATOR ==========");
+        System.out.println("\n========== DEMOSTRACIÓN ADAPTER + BRIDGE + DECORATOR + COMPOSITE ==========");
         System.out.println("[CLIENTE - OrdenService] Creando orden: " + orden.getCodigoOrden());
 
         List<Vehiculo> disponibles = vehiculoRepository.buscarDisponibles();
@@ -64,27 +65,59 @@ public class OrdenService {
         // =========================
         System.out.println("[CLIENTE] Generando ruta con Bridge...");
 
-        Ruta ruta = servicioRutas.generarRuta(
-                orden.getOrigenLat() + "," + orden.getOrigenLng(),
-                vehiculoMasCercano.getLatitud() + "," + vehiculoMasCercano.getLongitud()
+        // Ruta del vehículo al origen de la orden
+        Ruta rutaVehiculoAOrigen = servicioRutas.generarRuta(
+                vehiculoMasCercano.getLatitud() + "," + vehiculoMasCercano.getLongitud(),
+                orden.getOrigenLat() + "," + orden.getOrigenLng()
         );
 
-        System.out.println("[CLIENTE] Distancia base: " + ruta.getDistancia());
+        // Ruta del origen al destino de la orden
+        Ruta rutaOrigenADestino = servicioRutas.generarRuta(
+                orden.getOrigenLat() + "," + orden.getOrigenLng(),
+                orden.getDestinoLat() + "," + orden.getDestinoLng()
+        );
+
+        System.out.println("[CLIENTE] Ruta vehículo->origen: " + rutaVehiculoAOrigen.getDistancia() + " km");
+        System.out.println("[CLIENTE] Ruta origen->destino: " + rutaOrigenADestino.getDistancia() + " km");
 
         // =========================
-        // PATRON DECORATOR
+        // PATRON COMPOSITE
         // =========================
-        System.out.println("[CLIENTE] Aplicando decoradores a la ruta...");
+        System.out.println("[CLIENTE] Construyendo ruta compuesta con Composite...");
 
-        RutaComponent componente = new RutaBaseComponent();
+        // Crear componentes (hojas) para cada segmento
+        RutaSimpleComponent segmento1 = new RutaSimpleComponent(rutaVehiculoAOrigen);
+        RutaSimpleComponent segmento2 = new RutaSimpleComponent(rutaOrigenADestino);
 
+        // Crear compuesto y agregar segmentos
+        RutaCompuestaComponent rutaCompuesta = new RutaCompuestaComponent("Entrega Completa");
+        rutaCompuesta.addSegmento(segmento1);
+        rutaCompuesta.addSegmento(segmento2);
+
+        System.out.println("[COMPOSITE] Distancia total compuesta: " + rutaCompuesta.getDistanciaTotal() + " km");
+        System.out.println("[COMPOSITE] Descripción:\n" + rutaCompuesta.getDescripcionRuta());
+
+        // =========================
+        // PATRON DECORATOR (sobre Composite)
+        // =========================
+        System.out.println("[CLIENTE] Aplicando decoradores a la ruta compuesta...");
+
+        // El composite puede ser decorado igual que un componente simple
+        com.flotasytransportes.aplicacion.rutas.decorator.RutaComponent componente = rutaCompuesta;
         componente = new TraficoDecorator(componente);
         componente = new PeajeDecorator(componente);
         componente = new ClimaDecorator(componente);
 
-        ruta = componente.procesarRuta(ruta);
+        // Obtener la ruta final procesada
+        Ruta rutaBase = new Ruta(
+                vehiculoMasCercano.getLatitud() + "," + vehiculoMasCercano.getLongitud(),
+                orden.getDestinoLat() + "," + orden.getDestinoLng(),
+                rutaCompuesta.getDistanciaTotal()
+        );
 
-        System.out.println("[CLIENTE] Ruta final con decoradores: " + ruta.getDistancia());
+        rutaBase = componente.procesarRuta(rutaBase);
+
+        System.out.println("[CLIENTE] Ruta final con decoradores: " + rutaBase.getDistancia() + " km");
 
         // =========================
         // FINAL
@@ -95,7 +128,7 @@ public class OrdenService {
         orden.asignarVehiculo(vehiculoMasCercano.getPlaca());
 
         System.out.println("[CLIENTE] Orden asignada correctamente");
-        System.out.println("==========================================\n");
+        System.out.println("================================================================================\n");
 
         return orden;
     }
