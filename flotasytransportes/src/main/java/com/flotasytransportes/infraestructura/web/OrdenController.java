@@ -1,6 +1,6 @@
 package com.flotasytransportes.infraestructura.web;
 
-import com.flotasytransportes.aplicacion.servicio.OrdenService;
+import com.flotasytransportes.aplicacion.facade.OrdenTransporteFacade;
 import com.flotasytransportes.dominio.modelo.OrdenTransporte;
 
 import org.springframework.web.bind.annotation.*;
@@ -9,14 +9,14 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/ordenes")
 public class OrdenController {
 
-    private final OrdenService ordenService;
+    private final OrdenTransporteFacade ordenTransporteFacade;
 
-    public OrdenController(OrdenService ordenService) {
-        this.ordenService = ordenService;
+    public OrdenController(OrdenTransporteFacade ordenTransporteFacade) {
+        this.ordenTransporteFacade = ordenTransporteFacade;
     }
 
     @PostMapping("/asignar")
     public OrdenTransporte crearYAsignar(@RequestBody OrdenTransporte orden) {
-        return ordenService.crearYAsignarOrden(orden);
+        return ordenTransporteFacade.crearYAsignarOrden(orden);
     }
 }
