@@ -31,3 +31,8 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Carpetas y archivos personalizados
+.agents/
+contexto/
+skills-lock.json
