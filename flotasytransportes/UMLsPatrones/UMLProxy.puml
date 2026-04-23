@@ -1,0 +1,59 @@
+@startuml
+title Patrón Proxy - Sistema de Gestión de Flotas
+
+skinparam classAttributeIconSize 0
+
+interface DistanciaServicePort {
+    + calcularDistancia(lat1, lng1, lat2, lng2) : double
+}
+
+class CalculadoraDistanciaService {
+    + calcularDistancia(lat1, lng1, lat2, lng2) : double
+}
+
+class DistanciaAdapter {
+    - calculadoraDistanciaService : CalculadoraDistanciaService
+    + calcularDistancia(lat1, lng1, lat2, lng2) : double
+}
+
+interface CacheAlmacenamiento<T> {
+    + obtener(clave) : T
+    + guardar(clave, valor)
+    + contiene(clave) : boolean
+    + tamano() : int
+}
+
+class CacheEnMemoria<T> {
+    - cache : Map<String, T>
+    - capacidadMaxima : int
+    + obtener(clave) : T
+    + guardar(clave, valor)
+    + contiene(clave) : boolean
+    + tamano() : int
+}
+
+class DistanciaServiceProxy {
+    - servicioReal : DistanciaServicePort
+    - cache : CacheAlmacenamiento<Double>
+    + calcularDistancia(lat1, lng1, lat2, lng2) : double
+    + limpiarCache()
+}
+
+class OrdenService {
+    - vehiculoRepository : VehiculoRepositoryPort
+    - distanciaService : DistanciaServicePort
+    - servicioRutas : ServicioRutas
+    + crearYAsignarOrden(orden) : OrdenTransporte
+}
+
+DistanciaServicePort <|.. DistanciaAdapter
+DistanciaServicePort <|.. DistanciaServiceProxy
+
+CacheAlmacenamiento <|.. CacheEnMemoria
+
+DistanciaAdapter --> CalculadoraDistanciaService : usa
+DistanciaServiceProxy --> DistanciaServicePort : delega
+DistanciaServiceProxy --> CacheAlmacenamiento : usa
+OrdenService --> DistanciaServicePort : usa
+
+@enduml

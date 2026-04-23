@@ -6,6 +6,7 @@ import com.flotasytransportes.aplicacion.rutas.composite.*;
 import com.flotasytransportes.dominio.modelo.*;
 import com.flotasytransportes.dominio.puertos.DistanciaServicePort;
 import com.flotasytransportes.dominio.puertos.VehiculoRepositoryPort;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -19,7 +20,7 @@ public class OrdenService {
     private final ServicioRutas servicioRutas;
 
     public OrdenService(VehiculoRepositoryPort vehiculoRepository,
-                        DistanciaServicePort distanciaService,
+                        @Qualifier("distanciaServicePort") DistanciaServicePort distanciaService,
                         ServicioRutas servicioRutas) {
 
         this.vehiculoRepository = vehiculoRepository;

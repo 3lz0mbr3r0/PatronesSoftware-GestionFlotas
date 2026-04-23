@@ -1,11 +1,8 @@
 package com.flotasytransportes.infraestructura.integracion;
 
-import org.springframework.stereotype.Component;
-
 import com.flotasytransportes.aplicacion.servicio.CalculadoraDistanciaService;
 import com.flotasytransportes.dominio.puertos.DistanciaServicePort;
 
-@Component
 public class DistanciaAdapter implements DistanciaServicePort {
 
     private final CalculadoraDistanciaService calculadoraDistanciaService;
