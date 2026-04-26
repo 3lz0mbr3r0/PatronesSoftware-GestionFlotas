@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:8080/api'
+const API_BASE = 'http://localhost:8080'
 
 export const vehiculosService = {
   async getAll() {
@@ -7,8 +7,14 @@ export const vehiculosService = {
     return response.json()
   },
 
-  async create(vehiculo) {
-    const response = await fetch(`${API_BASE}/vehiculos`, {
+  async getByPlaca(placa) {
+    const response = await fetch(`${API_BASE}/vehiculos/${placa}`)
+    if (!response.ok) throw new Error('Error fetching vehículo')
+    return response.json()
+  },
+
+  async createByTipo(tipo, vehiculo) {
+    const response = await fetch(`${API_BASE}/vehiculos/${tipo}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(vehiculo)
@@ -17,13 +23,19 @@ export const vehiculosService = {
     return response.json()
   },
 
-  async update(placa, vehiculo) {
-    const response = await fetch(`${API_BASE}/vehiculos/${placa}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(vehiculo)
+  async updateUbicacion(placa, lat, lng) {
+    const response = await fetch(`${API_BASE}/vehiculos/${placa}/ubicacion?lat=${lat}&lng=${lng}`, {
+      method: 'PUT'
     })
-    if (!response.ok) throw new Error('Error updating vehículo')
+    if (!response.ok) throw new Error('Error updating ubicación')
+    return response.json()
+  },
+
+  async updateKilometraje(placa, km) {
+    const response = await fetch(`${API_BASE}/vehiculos/${placa}/kilometraje?km=${km}`, {
+      method: 'PUT'
+    })
+    if (!response.ok) throw new Error('Error updating kilometraje')
     return response.json()
   },
 

@@ -1,6 +1,27 @@
 import { useState, useEffect } from 'react'
 import { vehiculosService } from '../../services/api'
 
+const ESTADOS = ['DISPONIBLE', 'EN_RUTA', 'MANTENIMIENTO']
+const TIPOS = ['CAMION', 'MOTO', 'FURGON']
+const TIPOS_ENERGIA = ['GASOLINA', 'ELECTRICO']
+
+const inputStyle = {
+  width: '100%',
+  padding: '0.75rem',
+  background: 'var(--bg-secondary)',
+  border: '1px solid var(--border-subtle)',
+  borderRadius: '8px',
+  color: 'var(--text-primary)',
+  fontSize: '1rem'
+}
+
+const labelStyle = {
+  display: 'block',
+  marginBottom: '0.5rem',
+  fontSize: '0.875rem',
+  color: 'var(--text-secondary)'
+}
+
 function ListaVehiculos() {
   const [vehiculos, setVehiculos] = useState([])
   const [loading, setLoading] = useState(true)
@@ -8,11 +29,12 @@ function ListaVehiculos() {
   const [loadingSubmit, setLoadingSubmit] = useState(false)
   const [formData, setFormData] = useState({
     placa: '',
-    modelo: '',
-    marca: '',
+    latitud: '',
+    longitud: '',
     tipo: 'CAMION',
-    tipoEnergia: 'DIESEL',
-    capacidad: 0,
+    tipoEnergia: 'GASOLINA',
+    kilometrajeActual: '',
+    limiteMantenimiento: '',
     estado: 'DISPONIBLE'
   })
 
@@ -35,12 +57,31 @@ function ListaVehiculos() {
     e.preventDefault()
     setLoadingSubmit(true)
     try {
-      await vehiculosService.create(formData)
+      const vehiculoData = {
+        placa: formData.placa,
+        latitud: formData.latitud ? parseFloat(formData.latitud) : null,
+        longitud: formData.longitud ? parseFloat(formData.longitud) : null,
+        tipoEnergia: formData.tipoEnergia,
+        kilometrajeActual: formData.kilometrajeActual ? parseFloat(formData.kilometrajeActual) : 0,
+        limiteMantenimiento: formData.limiteMantenimiento ? parseFloat(formData.limiteMantenimiento) : 10000,
+        estado: formData.estado
+      }
+      await vehiculosService.createByTipo(formData.tipo, vehiculoData)
       await cargarVehiculos()
       setShowForm(false)
-      setFormData({ placa: '', modelo: '', marca: '', tipo: 'CAMION', tipoEnergia: 'DIESEL', capacidad: 0, estado: 'DISPONIBLE' })
+      setFormData({
+        placa: '',
+        latitud: '',
+        longitud: '',
+        tipo: 'CAMION',
+        tipoEnergia: 'GASOLINA',
+        kilometrajeActual: '',
+        limiteMantenimiento: '',
+        estado: 'DISPONIBLE'
+      })
     } catch (error) {
       console.error('Error creando vehículo:', error)
+      alert('Error al crear vehículo: ' + error.message)
     } finally {
       setLoadingSubmit(false)
     }
@@ -55,6 +96,24 @@ function ListaVehiculos() {
         console.error('Error eliminando vehículo:', error)
       }
     }
+  }
+
+  const getEstadoColor = (estado) => {
+    const colors = {
+      DISPONIBLE: { bg: 'rgba(0, 212, 170, 0.15)', color: 'var(--accent-primary)' },
+      EN_RUTA: { bg: 'rgba(139, 92, 246, 0.15)', color: '#8b5cf6' },
+      MANTENIMIENTO: { bg: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b' }
+    }
+    return colors[estado] || colors.DISPONIBLE
+  }
+
+  const getTipoIcon = (tipo) => {
+    const icons = {
+      CAMION: '◭',
+      MOTO: '◬',
+      FURGON: '◰'
+    }
+    return icons[tipo] || '◭'
   }
 
   if (loading) {
@@ -81,115 +140,96 @@ function ListaVehiculos() {
           <form onSubmit={handleSubmit}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Placa</label>
+                <label style={{ ...labelStyle }}>Placa *</label>
                 <input
                   type="text"
                   value={formData.placa}
                   onChange={(e) => setFormData({ ...formData, placa: e.target.value.toUpperCase() })}
+                  placeholder="ABC-123"
                   required
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    background: 'var(--bg-secondary)',
-                    border: '1px solid var(--border-subtle)',
-                    borderRadius: '8px',
-                    color: 'var(--text-primary)',
-                    fontSize: '1rem'
-                  }}
+                  style={inputStyle}
                 />
               </div>
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Marca</label>
-                <input
-                  type="text"
-                  value={formData.marca}
-                  onChange={(e) => setFormData({ ...formData, marca: e.target.value })}
-                  required
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    background: 'var(--bg-secondary)',
-                    border: '1px solid var(--border-subtle)',
-                    borderRadius: '8px',
-                    color: 'var(--text-primary)',
-                    fontSize: '1rem'
-                  }}
-                />
-              </div>
-              <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Modelo</label>
-                <input
-                  type="text"
-                  value={formData.modelo}
-                  onChange={(e) => setFormData({ ...formData, modelo: e.target.value })}
-                  required
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    background: 'var(--bg-secondary)',
-                    border: '1px solid var(--border-subtle)',
-                    borderRadius: '8px',
-                    color: 'var(--text-primary)',
-                    fontSize: '1rem'
-                  }}
-                />
-              </div>
-              <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Tipo</label>
+                <label style={{ ...labelStyle }}>Tipo de Vehículo *</label>
                 <select
                   value={formData.tipo}
                   onChange={(e) => setFormData({ ...formData, tipo: e.target.value })}
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    background: 'var(--bg-secondary)',
-                    border: '1px solid var(--border-subtle)',
-                    borderRadius: '8px',
-                    color: 'var(--text-primary)',
-                    fontSize: '1rem'
-                  }}
+                  required
+                  style={inputStyle}
                 >
-                  <option value="CAMION">Camión</option>
-                  <option value="FURGON">Furgón</option>
-                  <option value="MOTO">Motocicleta</option>
+                  {TIPOS.map(t => (
+                    <option key={t} value={t}>{t === 'CAMION' ? 'Camión' : t === 'MOTO' ? 'Motocicleta' : 'Furgón'}</option>
+                  ))}
                 </select>
               </div>
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Tipo Energía</label>
+                <label style={{ ...labelStyle }}>Latitud</label>
+                <input
+                  type="number"
+                  step="any"
+                  value={formData.latitud}
+                  onChange={(e) => setFormData({ ...formData, latitud: e.target.value })}
+                  placeholder="4.7110"
+                  style={inputStyle}
+                />
+              </div>
+              <div>
+                <label style={{ ...labelStyle }}>Longitud</label>
+                <input
+                  type="number"
+                  step="any"
+                  value={formData.longitud}
+                  onChange={(e) => setFormData({ ...formData, longitud: e.target.value })}
+                  placeholder="-74.0721"
+                  style={inputStyle}
+                />
+              </div>
+              <div>
+                <label style={{ ...labelStyle }}>Tipo de Energía *</label>
                 <select
                   value={formData.tipoEnergia}
                   onChange={(e) => setFormData({ ...formData, tipoEnergia: e.target.value })}
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    background: 'var(--bg-secondary)',
-                    border: '1px solid var(--border-subtle)',
-                    borderRadius: '8px',
-                    color: 'var(--text-primary)',
-                    fontSize: '1rem'
-                  }}
+                  required
+                  style={inputStyle}
                 >
-                  <option value="DIESEL">Diésel</option>
-                  <option value="GASOLINA">Gasolina</option>
-                  <option value="ELECTRICO">Eléctrico</option>
+                  {TIPOS_ENERGIA.map(t => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
                 </select>
               </div>
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Capacidad (kg)</label>
+                <label style={{ ...labelStyle }}>Estado inicial</label>
+                <select
+                  value={formData.estado}
+                  onChange={(e) => setFormData({ ...formData, estado: e.target.value })}
+                  style={inputStyle}
+                >
+                  {ESTADOS.map(e => (
+                    <option key={e} value={e}>{e}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label style={{ ...labelStyle }}>Kilometraje inicial</label>
                 <input
                   type="number"
-                  value={formData.capacidad}
-                  onChange={(e) => setFormData({ ...formData, capacidad: parseInt(e.target.value) })}
-                  required
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    background: 'var(--bg-secondary)',
-                    border: '1px solid var(--border-subtle)',
-                    borderRadius: '8px',
-                    color: 'var(--text-primary)',
-                    fontSize: '1rem'
-                  }}
+                  step="any"
+                  value={formData.kilometrajeActual}
+                  onChange={(e) => setFormData({ ...formData, kilometrajeActual: e.target.value })}
+                  placeholder="0"
+                  style={inputStyle}
+                />
+              </div>
+              <div>
+                <label style={{ ...labelStyle }}>Límite mantenimiento (km)</label>
+                <input
+                  type="number"
+                  step="any"
+                  value={formData.limiteMantenimiento}
+                  onChange={(e) => setFormData({ ...formData, limiteMantenimiento: e.target.value })}
+                  placeholder="10000"
+                  style={inputStyle}
                 />
               </div>
             </div>
@@ -229,40 +269,44 @@ function ListaVehiculos() {
         </div>
       ) : (
         <div className="activity-list">
-          {vehiculos.map(vehiculo => (
-            <div key={vehiculo.placa} className="activity-item">
-              <div className="activity-icon vehiculo">◭</div>
-              <div className="activity-content">
-                <span className="activity-title">{vehiculo.placa}</span>
-                <span className="activity-time">{vehiculo.marca} {vehiculo.modelo}</span>
+          {vehiculos.map(vehiculo => {
+            const estadoStyle = getEstadoColor(vehiculo.estado)
+            return (
+              <div key={vehiculo.placa} className="activity-item">
+                <div className="activity-icon vehiculo">{getTipoIcon(vehiculo.tipo || 'CAMION')}</div>
+                <div className="activity-content" style={{ flex: 1 }}>
+                  <span className="activity-title">{vehiculo.placa}</span>
+                  <span className="activity-time">
+                    {vehiculo.tipo || 'CAMION'} • {vehiculo.tipoEnergia || 'GASOLINA'} • {vehiculo.kilometrajeActual || 0} km
+                  </span>
+                </div>
+                <div style={{ 
+                  marginRight: '1rem',
+                  padding: '0.25rem 0.75rem', 
+                  background: estadoStyle.bg, 
+                  color: estadoStyle.color,
+                  borderRadius: '4px', 
+                  fontSize: '0.75rem' 
+                }}>
+                  {vehiculo.estado}
+                </div>
+                <button 
+                  onClick={() => handleDelete(vehiculo.placa)}
+                  style={{ 
+                    padding: '0.5rem',
+                    background: 'transparent',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: '6px',
+                    color: 'var(--text-muted)',
+                    cursor: 'pointer'
+                  }}
+                  title="Eliminar"
+                >
+                  ✕
+                </button>
               </div>
-              <div style={{ 
-                marginLeft: 'auto', 
-                padding: '0.25rem 0.75rem', 
-                background: vehiculo.estado === 'DISPONIBLE' ? 'rgba(0, 212, 170, 0.15)' : vehiculo.estado === 'EN_RUTA' ? 'rgba(139, 92, 246, 0.15)' : 'rgba(245, 158, 11, 0.15)', 
-                color: vehiculo.estado === 'DISPONIBLE' ? 'var(--accent-primary)' : vehiculo.estado === 'EN_RUTA' ? '#8b5cf6' : '#f59e0b',
-                borderRadius: '4px', 
-                fontSize: '0.75rem' 
-              }}>
-                {vehiculo.estado}
-              </div>
-              <button 
-                onClick={() => handleDelete(vehiculo.placa)}
-                style={{ 
-                  marginLeft: '1rem',
-                  padding: '0.5rem',
-                  background: 'transparent',
-                  border: '1px solid var(--border-subtle)',
-                  borderRadius: '6px',
-                  color: 'var(--text-muted)',
-                  cursor: 'pointer'
-                }}
-                title="Eliminar"
-              >
-                ✕
-              </button>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>
