@@ -1,59 +1,96 @@
 @startuml
 title Patrón Proxy - Sistema de Gestión de Flotas
-
 skinparam classAttributeIconSize 0
 
+' =========================
+' INTERFAZ (Contrato)
+' =========================
 interface DistanciaServicePort {
-    + calcularDistancia(lat1, lng1, lat2, lng2) : double
+    + calcularDistancia(lat1: double, lon1: double, lat2: double, lon2: double) : double
 }
 
-class CalculadoraDistanciaService {
-    + calcularDistancia(lat1, lng1, lat2, lng2) : double
-}
-
-class DistanciaAdapter {
-    - calculadoraDistanciaService : CalculadoraDistanciaService
-    + calcularDistancia(lat1, lng1, lat2, lng2) : double
-}
-
+' =========================
+' CACHE INTERFAZ
+' =========================
 interface CacheAlmacenamiento<T> {
-    + obtener(clave) : T
-    + guardar(clave, valor)
-    + contiene(clave) : boolean
+    + obtener(clave: String) : T
+    + guardar(clave: String, valor: T)
+    + contiene(clave: String) : boolean
     + tamano() : int
+    + limpiar()
 }
 
-class CacheEnMemoria<T> {
-    - cache : Map<String, T>
-    - capacidadMaxima : int
-    + obtener(clave) : T
-    + guardar(clave, valor)
-    + contiene(clave) : boolean
-    + tamano() : int
-}
-
+' =========================
+' PROXY CONCRETO
+' =========================
 class DistanciaServiceProxy {
     - servicioReal : DistanciaServicePort
     - cache : CacheAlmacenamiento<Double>
-    + calcularDistancia(lat1, lng1, lat2, lng2) : double
+    + calcularDistancia(lat1: double, lon1: double, lat2: double, lon2: double) : double
     + limpiarCache()
 }
 
+' =========================
+' CACHE IMPLEMENTACIÓN (LRU)
+' =========================
+class CacheEnMemoria<T> {
+    - cache : Map<String, T>
+    - capacidadMaxima : int
+    + obtener(clave: String) : T
+    + guardar(clave: String, valor: T)
+    + contiene(clave: String) : boolean
+    + tamano() : int
+    + limpiar()
+}
+
+' =========================
+' ADAPTER (Implementación Real)
+' =========================
+class DistanciaAdapter {
+    - calculadoraDistanciaService : CalculadoraDistanciaService
+    + calcularDistancia(lat1: double, lon1: double, lat2: double, lon2: double) : double
+}
+
+' =========================
+' SERVICIO REAL
+' =========================
+class CalculadoraDistanciaService {
+    - RADIO_TIERRA_KM : double
+    + calcularDistancia(lat1: double, lon1: double, lat2: double, lon2: double) : double
+}
+
+' =========================
+' MODELO
+' =========================
+class Ruta {
+    - origen : String
+    - destino : String
+    - distancia : double
+}
+
+' =========================
+' RELACIONES - Implementación
+' =========================
+DistanciaServicePort <|.. DistanciaServiceProxy
+DistanciaServicePort <|.. DistanciaAdapter
+CacheAlmacenamiento <|.. CacheEnMemoria
+
+' =========================
+' RELACIONES - Uso
+' =========================
+DistanciaServiceProxy --> CacheAlmacenamiento : usa
+DistanciaAdapter --> CalculadoraDistanciaService : usa
+
+' =========================
+' CLIENTE (Usa el Proxy)
+' =========================
 class OrdenService {
     - vehiculoRepository : VehiculoRepositoryPort
     - distanciaService : DistanciaServicePort
-    - servicioRutas : ServicioRutas
-    + crearYAsignarOrden(orden) : OrdenTransporte
+    + crearYAsignarOrden(orden: OrdenTransporte) : OrdenTransporte
 }
 
-DistanciaServicePort <|.. DistanciaAdapter
-DistanciaServicePort <|.. DistanciaServiceProxy
-
-CacheAlmacenamiento <|.. CacheEnMemoria
-
-DistanciaAdapter --> CalculadoraDistanciaService : usa
-DistanciaServiceProxy --> DistanciaServicePort : delega
-DistanciaServiceProxy --> CacheAlmacenamiento : usa
 OrdenService --> DistanciaServicePort : usa
+Ruta --> DistanciaServicePort
 
 @enduml
