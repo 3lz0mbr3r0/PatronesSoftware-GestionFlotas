@@ -60,7 +60,10 @@ export const ordenesService = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(orden)
     })
-    if (!response.ok) throw new Error('Error creating order')
+    if (!response.ok) {
+      const errorText = await response.text()
+      throw new Error(errorText || 'Error creando orden')
+    }
     return response.json()
   }
 }
