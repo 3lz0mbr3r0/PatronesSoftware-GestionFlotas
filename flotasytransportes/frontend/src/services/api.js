@@ -69,9 +69,22 @@ export const ordenesService = {
 }
 
 export const reportesService = {
-  async getMantenimiento() {
-    const response = await fetch(`${API_BASE}/reportes/mantenimiento`)
+  async getAll() {
+    const response = await fetch(`${API_BASE}/reportes`)
     if (!response.ok) throw new Error('Error fetching reportes')
+    return response.json()
+  },
+
+  async create(dto) {
+    const response = await fetch(`${API_BASE}/reportes/mantenimiento`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(dto)
+    })
+    if (!response.ok) {
+      const errorText = await response.text()
+      throw new Error(errorText || 'Error creando reporte')
+    }
     return response.json()
   }
 }

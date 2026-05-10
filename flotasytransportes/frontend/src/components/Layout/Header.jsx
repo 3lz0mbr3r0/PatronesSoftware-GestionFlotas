@@ -34,7 +34,7 @@ function Header() {
           </NavLink>
           <NavLink to="/reportes" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
             <span className="nav-icon">◳</span>
-            Reportes
+            Mantenimiento
           </NavLink>
         </nav>
         
