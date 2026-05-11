@@ -59,6 +59,16 @@ public class VehiculoService {
     }
     
     
+    public Vehiculo cambiarEstado(String placa, EstadoVehiculo estado) {
+        Vehiculo vehiculo = vehiculoRepository.buscarPorPlaca(placa)
+                .orElseThrow(() -> new RuntimeException("Vehículo no encontrado"));
+        if (vehiculo.getEstado() == EstadoVehiculo.MANTENIMIENTO && estado == EstadoVehiculo.DISPONIBLE) {
+            vehiculo.setLimiteMantenimiento(vehiculo.getLimiteMantenimiento() * 2);
+        }
+        vehiculo.cambiarEstado(estado);
+        return vehiculoRepository.guardar(vehiculo);
+    }
+
     public Vehiculo crearVehiculo(TipoVehiculo tipo, VehiculoDTO dto) {
 
         VehiculoAbstractFactory abstractfactory;

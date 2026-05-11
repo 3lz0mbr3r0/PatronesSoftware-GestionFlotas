@@ -3,6 +3,7 @@ package com.flotasytransportes.infraestructura.web;
 import com.flotasytransportes.aplicacion.servicio.VehiculoService;
 import com.flotasytransportes.dominio.modelo.Vehiculo;
 import com.flotasytransportes.dominio.modelo.TipoVehiculo;
+import com.flotasytransportes.dominio.modelo.EstadoVehiculo;
 import com.flotasytransportes.infraestructura.web.dto.VehiculoDTO;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,6 +35,12 @@ public class VehiculoController {
     public Vehiculo actualizarKilometraje(@PathVariable String placa,
                                           @RequestParam Double km) {
         return vehiculoService.actualizarKilometraje(placa, km);
+    }
+
+    @PutMapping("/{placa}/estado")
+    public Vehiculo cambiarEstado(@PathVariable String placa,
+                                  @RequestParam EstadoVehiculo estado) {
+        return vehiculoService.cambiarEstado(placa, estado);
     }
 
     @GetMapping
