@@ -1,49 +1,42 @@
-package com.flotasytransportes.dominio.modelo;
+package com.flotasytransportes.infraestructura.persistencia.entidad;
 
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
-public class OrdenTransporte {
+@Entity
+@Table(name = "ordenes")
+public class OrdenEntity {
 
+    @Id
     private String codigoOrden;
+
     private Double origenLat;
     private Double origenLng;
     private Double destinoLat;
     private Double destinoLng;
     private String vehiculoPlaca;
+
+    @Column(nullable = false)
     private String estado;
+
     private LocalDateTime fechaCreacion;
 
-    public OrdenTransporte() {
-        this.estado = "CREADA";
-        this.fechaCreacion = LocalDateTime.now();
+    public OrdenEntity() {
     }
 
-    public OrdenTransporte(String codigoOrden, Double origenLat, Double origenLng,
-                           Double destinoLat, Double destinoLng) {
+    public OrdenEntity(String codigoOrden, Double origenLat, Double origenLng,
+                       Double destinoLat, Double destinoLng, String vehiculoPlaca,
+                       String estado, LocalDateTime fechaCreacion) {
         this.codigoOrden = codigoOrden;
         this.origenLat = origenLat;
         this.origenLng = origenLng;
         this.destinoLat = destinoLat;
         this.destinoLng = destinoLng;
-        this.estado = "CREADA";
-        this.fechaCreacion = LocalDateTime.now();
-    }
-
-    public void asignarVehiculo(String vehiculoPlaca) {
         this.vehiculoPlaca = vehiculoPlaca;
-        this.estado = "ASIGNADA";
+        this.estado = estado;
+        this.fechaCreacion = fechaCreacion;
     }
 
-    public String generarLinkNavegacion() {
-        if (origenLat == null || origenLng == null || destinoLat == null || destinoLng == null) {
-            return "";
-        }
-        return "https://www.google.com/maps/dir/"
-                + origenLat + "," + origenLng + "/"
-                + destinoLat + "," + destinoLng;
-    }
-
-    // Getters y Setters
     public String getCodigoOrden() { return codigoOrden; }
     public void setCodigoOrden(String codigoOrden) { this.codigoOrden = codigoOrden; }
 

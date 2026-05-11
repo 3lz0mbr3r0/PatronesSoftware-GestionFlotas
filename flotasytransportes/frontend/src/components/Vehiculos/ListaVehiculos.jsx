@@ -87,6 +87,15 @@ function ListaVehiculos() {
     }
   }
 
+  const handleEstadoChange = async (placa, nuevoEstado) => {
+    try {
+      await vehiculosService.updateEstado(placa, nuevoEstado)
+      await cargarVehiculos()
+    } catch (error) {
+      console.error('Error cambiando estado:', error)
+    }
+  }
+
   const handleDelete = async (placa) => {
     if (window.confirm(`¿Eliminar vehículo ${placa}?`)) {
       try {
@@ -281,15 +290,35 @@ function ListaVehiculos() {
                   </span>
                 </div>
                 <div style={{ 
-                  marginRight: '1rem',
+                  marginRight: '0.5rem',
                   padding: '0.25rem 0.75rem', 
                   background: estadoStyle.bg, 
                   color: estadoStyle.color,
                   borderRadius: '4px', 
-                  fontSize: '0.75rem' 
+                  fontSize: '0.75rem',
+                  fontWeight: 600
                 }}>
                   {vehiculo.estado}
                 </div>
+                {vehiculo.estado === 'MANTENIMIENTO' && (
+                  <button
+                    onClick={() => handleEstadoChange(vehiculo.placa, 'DISPONIBLE')}
+                    style={{ 
+                      marginRight: '1rem',
+                      padding: '0.25rem 0.75rem',
+                      background: 'rgba(0, 212, 170, 0.15)',
+                      color: 'var(--accent-primary)',
+                      border: '1px solid var(--accent-primary)',
+                      borderRadius: '4px',
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                    title="Marcar como disponible"
+                  >
+                    ✓ Disponible
+                  </button>
+                )}
                 <button 
                   onClick={() => handleDelete(vehiculo.placa)}
                   style={{ 

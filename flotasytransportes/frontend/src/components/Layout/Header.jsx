@@ -34,16 +34,16 @@ function Header() {
           </NavLink>
           <NavLink to="/reportes" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
             <span className="nav-icon">◳</span>
-            Reportes
+            Mantenimiento
           </NavLink>
         </nav>
         
-        <div className="header-actions">
+        {/* <div className="header-actions">
           <div className="user-menu">
             <div className="user-avatar">A</div>
             <span className="user-name">Admin</span>
           </div>
-        </div>
+        </div> */}
       </div>
     </header>
   )
