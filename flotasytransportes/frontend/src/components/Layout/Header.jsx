@@ -38,12 +38,12 @@ function Header() {
           </NavLink>
         </nav>
         
-        <div className="header-actions">
+        {/* <div className="header-actions">
           <div className="user-menu">
             <div className="user-avatar">A</div>
             <span className="user-name">Admin</span>
           </div>
-        </div>
+        </div> */}
       </div>
     </header>
   )

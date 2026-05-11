@@ -217,7 +217,14 @@ function Reportes() {
                   <label style={{ ...labelStyle }}>Placa del Vehículo *</label>
                   <select
                     value={formData.placaVehiculo}
-                    onChange={(e) => setFormData({ ...formData, placaVehiculo: e.target.value })}
+                    onChange={(e) => {
+                      const v = vehiculos.find(v => v.placa === e.target.value)
+                      setFormData({
+                        ...formData,
+                        placaVehiculo: e.target.value,
+                        kilometraje: v ? v.kilometrajeActual : ''
+                      })
+                    }}
                     required
                     style={inputStyle}
                   >
@@ -233,10 +240,10 @@ function Reportes() {
                     type="number"
                     step="any"
                     value={formData.kilometraje}
-                    onChange={(e) => setFormData({ ...formData, kilometraje: e.target.value })}
+                    readOnly
                     required
-                    placeholder="15000"
-                    style={inputStyle}
+                    placeholder="Kilometros recorridos"
+                    style={{ ...inputStyle, background: 'var(--bg-tertiary)', cursor: 'not-allowed', opacity: 0.7 }}
                   />
                 </div>
                 <div>
