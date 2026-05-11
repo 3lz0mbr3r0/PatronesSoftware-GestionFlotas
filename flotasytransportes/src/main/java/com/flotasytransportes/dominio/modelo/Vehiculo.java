@@ -81,6 +81,12 @@ public abstract class Vehiculo {
     public TipoEnergia getTipoEnergia() { return tipoEnergia; }
     public Double getKilometrajeActual() { return kilometrajeActual; }
     public Double getLimiteMantenimiento() { return limiteMantenimiento; }
+    public TipoVehiculo getTipo() {
+        if (this instanceof Camion) return TipoVehiculo.CAMION;
+        if (this instanceof Moto) return TipoVehiculo.MOTO;
+        if (this instanceof Furgon) return TipoVehiculo.FURGON;
+        throw new IllegalStateException("Tipo de vehículo desconocido: " + this.getClass().getSimpleName());
+    }
 
 	public void setPlaca(String placa) {
 		this.placa = placa;
