@@ -1,0 +1,86 @@
+@startuml
+title Patrón Observer - Sistema de Gestión de Flotas (Frontend)
+
+skinparam classAttributeIconSize 0
+
+' =========================
+' SUBJECT (Singleton)
+' =========================
+class EventBus {
+    - listeners : Map<String, List<Function>>
+    + subscribe(event: String, callback: Function) : Function
+    + unsubscribe(event: String, callback: Function)
+    + emit(event: String, data: Object)
+}
+
+note left of EventBus
+  Única instancia global en la aplicación.
+  Método subscribe retorna una función
+  de limpieza para el unsubscribe automático.
+end note
+
+' =========================
+' EVENTOS EMITIDOS
+' =========================
+note "Eventos emitidos:\n
+  vehiculo:created\n
+  vehiculo:deleted\n
+  vehiculo:estadoChanged\n
+  orden:created\n
+  reporte:created" as eventos
+EventBus .. eventos
+
+' =========================
+' SUBJECTS CONCRETOS (Emisores)
+' =========================
+class ListaVehiculos {
+    + crearVehiculo() : void
+    + eliminarVehiculo() : void
+    + cambiarEstado() : void
+}
+
+class ListaOrdenes {
+    + crearOrden() : void
+}
+
+class Reportes {
+    + crearReporte() : void
+}
+
+ListaVehiculos -right-> EventBus : "emite eventos"
+ListaOrdenes -right-> EventBus : "emite eventos"
+Reportes -right-> EventBus : "emite eventos"
+
+' =========================
+' OBSERVER CONCRETO
+' =========================
+class Dashboard {
+    - vehiculos : List
+    - ordenes : List
+    - reportes : List
+    + cargarDatos() : void
+}
+note bottom of Dashboard
+  Se suscribe en useEffect a 5 eventos.
+  Al recibir cualquier evento, recarga
+  todos los datos automáticamente.
+  Retorna función de limpieza que
+  desuscribe todos los listeners.
+end note
+
+EventBus -left-> Dashboard : "notifica eventos"
+
+' =========================
+' COMMAND HISTORY (usa EventBus)
+' =========================
+class CommandHistory {
+    - history : List<Command>
+    + ejecutar(command: Command) : Object
+    + deshacer() : void
+    + getHistorial() : List<Command>
+    + onCambio(callback: Function) : Function
+}
+
+CommandHistory --> EventBus : "emite eventos"
+
+@enduml

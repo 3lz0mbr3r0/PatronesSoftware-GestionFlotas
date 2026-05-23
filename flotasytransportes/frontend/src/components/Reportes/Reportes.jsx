@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { reportesService, vehiculosService } from '../../services/api'
+import commandHistory, { CrearReporteCommand } from '../../patterns/comandos'
 
 const inputStyle = {
   width: '100%',
@@ -89,7 +90,8 @@ function Reportes() {
         nivelDesgaste: formData.nivelDesgaste || null,
         proximoMantenimientoKm: formData.proximoMantenimientoKm ? parseFloat(formData.proximoMantenimientoKm) : null
       }
-      const res = await reportesService.create(dto)
+      const cmd = new CrearReporteCommand(dto)
+      const res = await commandHistory.ejecutar(cmd)
       setResultado(res)
       const data = await reportesService.getAll()
       setReportes(data)
@@ -420,12 +422,22 @@ function Reportes() {
                   <span className="activity-title">{reporte.placaVehiculo}</span>
                   <span className="activity-time">
                     {reporte.tipoMantenimiento} • {reporte.kilometraje} km
-                    {reporte.tecnicoResponsable && ` • ${reporte.tecnicoResponsable}`}
+                    {reporte.tecnicoResponsable ? ` • ${reporte.tecnicoResponsable}` : ''}
+                    {reporte.taller ? ` • ${reporte.taller}` : ''}
                   </span>
                   <span className="activity-time" style={{ fontSize: '0.7rem' }}>
                     {reporte.fecha}
-                    {reporte.costoEstimado && ` • $${reporte.costoEstimado.toLocaleString()}`}
+                    {reporte.costoEstimado ? ` • $${reporte.costoEstimado.toLocaleString()}` : ''}
+                    {reporte.nivelDesgaste ? ` • ${reporte.nivelDesgaste}` : ''}
+                    {reporte.tiempoEstimadoHoras ? ` • ${reporte.tiempoEstimadoHoras}h` : ''}
                   </span>
+                  {(reporte.observaciones || reporte.proximoMantenimientoKm || reporte.requiereRepuestos != null) && (
+                    <span className="activity-time" style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                      {reporte.observaciones ? `"${reporte.observaciones.substring(0, 60)}${reporte.observaciones.length > 60 ? '...' : ''}"` : ''}
+                      {reporte.proximoMantenimientoKm ? `${reporte.observaciones ? ' • ' : ''}Próx: ${reporte.proximoMantenimientoKm} km` : ''}
+                      {reporte.requiereRepuestos ? `${(reporte.observaciones || reporte.proximoMantenimientoKm) ? ' • ' : ''}Requiere repuestos` : ''}
+                    </span>
+                  )}
                 </div>
                 <div style={{
                   padding: '0.25rem 0.75rem',

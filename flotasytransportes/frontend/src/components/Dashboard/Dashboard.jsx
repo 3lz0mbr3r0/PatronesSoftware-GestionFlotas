@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { vehiculosService, ordenesService, reportesService } from '../../services/api'
+import eventBus from '../../services/EventBus'
 
 function StatCard({ number, label }) {
   const [value, setValue] = useState(0)
@@ -78,6 +79,12 @@ function Dashboard() {
 
   useEffect(() => {
     cargarDatos()
+    const unsub1 = eventBus.subscribe('vehiculo:created', cargarDatos)
+    const unsub2 = eventBus.subscribe('vehiculo:deleted', cargarDatos)
+    const unsub3 = eventBus.subscribe('vehiculo:estadoChanged', cargarDatos)
+    const unsub4 = eventBus.subscribe('orden:created', cargarDatos)
+    const unsub5 = eventBus.subscribe('reporte:created', cargarDatos)
+    return () => { unsub1(); unsub2(); unsub3(); unsub4(); unsub5() }
   }, [])
 
   const cargarDatos = async () => {
@@ -124,21 +131,29 @@ function Dashboard() {
 
   // #1: Actividad Reciente Real
   const actividadReciente = [
-    ...ordenes.map(o => ({
-      id: `ord-${o.codigoOrden}`,
-      tipo: 'orden',
-      icon: '◬',
-      titulo: `Orden ${o.codigoOrden} creada`,
-      detalle: o.vehiculoPlaca ? `Vehículo: ${o.vehiculoPlaca}` : 'Pendiente de asignación',
-      tiempo: formatTiempo(o.fechaCreacion),
-      fecha: o.fechaCreacion
-    })),
+    ...ordenes.map(o => {
+      const coords = o.origenLat ? `(${o.origenLat}, ${o.origenLng}) → (${o.destinoLat}, ${o.destinoLng})` : ''
+      return {
+        id: `ord-${o.codigoOrden}`,
+        tipo: 'orden',
+        icon: '◬',
+        titulo: `Orden ${o.codigoOrden}`,
+        detalle: `${o.estado || 'CREADA'}${o.vehiculoPlaca ? ` • Vehículo: ${o.vehiculoPlaca}` : ' • Sin asignar'}${coords ? ` • ${coords}` : ''}`,
+        tiempo: formatTiempo(o.fechaCreacion),
+        fecha: o.fechaCreacion
+      }
+    }),
     ...reportes.map((r, i) => ({
       id: `rep-${r.placaVehiculo}-${i}`,
       tipo: 'mantenimiento',
       icon: '◳',
-      titulo: `Reporte ${r.tipoMantenimiento} para ${r.placaVehiculo}`,
-      detalle: r.prioridad ? `Prioridad: ${r.prioridad}` : '',
+      titulo: `${r.tipoMantenimiento} - ${r.placaVehiculo}`,
+      detalle: [
+        r.prioridad ? `Prioridad: ${r.prioridad}` : '',
+        r.costoEstimado ? `$${r.costoEstimado.toLocaleString()}` : '',
+        r.taller ? `Taller: ${r.taller}` : '',
+        r.nivelDesgaste ? `Desgaste: ${r.nivelDesgaste}` : ''
+      ].filter(Boolean).join(' • '),
       tiempo: formatTiempo(r.fecha),
       fecha: r.fecha
     }))
@@ -289,6 +304,7 @@ function Dashboard() {
                   <div className="activity-icon vehiculo" style={{ background: getMantenimientoColor(v.pctMantenimiento) + '22', color: getMantenimientoColor(v.pctMantenimiento) }}>◭</div>
                   <div className="activity-content" style={{ flex: 1 }}>
                     <span className="activity-title">{v.placa}</span>
+                    <span className="activity-time">{v.tipo || 'CAMION'} • {v.tipoEnergia || 'GASOLINA'}</span>
                     <span className="activity-time">{Math.round(v.kilometrajeActual).toLocaleString()} / {Math.round(v.limiteMantenimiento).toLocaleString()} km</span>
                     <div style={{ height: '6px', background: 'var(--bg-secondary)', borderRadius: '3px', marginTop: '0.25rem', overflow: 'hidden' }}>
                       <div style={{ width: `${Math.min(v.pctMantenimiento, 100)}%`, height: '100%', background: getMantenimientoColor(v.pctMantenimiento), borderRadius: '3px', transition: 'width 1s ease' }}></div>
@@ -319,7 +335,11 @@ function Dashboard() {
                   </div>
                   <div className="activity-content" style={{ flex: 1 }}>
                     <span className="activity-title">{v.placa}</span>
-                    <span className="activity-time">{v.tipo || 'CAMION'}</span>
+                    <span className="activity-time">{v.tipo || 'CAMION'} • {v.tipoEnergia || 'GASOLINA'} • {v.estado}</span>
+                    <span className="activity-time">
+                      {Math.round(v.kilometrajeActual).toLocaleString()} km
+                      {v.limiteMantenimiento ? ` (${Math.round((v.kilometrajeActual / v.limiteMantenimiento) * 100)}% del límite)` : ''}
+                    </span>
                     <div style={{ height: '6px', background: 'var(--bg-secondary)', borderRadius: '3px', marginTop: '0.25rem', overflow: 'hidden' }}>
                       <div style={{ width: `${(v.kilometrajeActual / maxKm) * 100}%`, height: '100%', background: i === 0 ? 'var(--accent-primary)' : i < 3 ? '#8b5cf6' : 'var(--text-muted)', borderRadius: '3px' }}></div>
                     </div>
@@ -341,23 +361,24 @@ function Dashboard() {
           <div style={{ marginBottom: '1rem' }}>
             <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--accent-primary)' }}>Por Tipo</span>
           </div>
-          {Object.entries(distribucionTipos).map(([tipo, count]) => (
-            <Bar key={tipo} label={tipo} value={count} max={vehiculos.length} color="var(--accent-primary)" />
-          ))}
+          {Object.entries(distribucionTipos).map(([tipo, count]) => {
+            const pct = Math.round((count / vehiculos.length) * 100)
+            return <Bar key={tipo} label={`${tipo} (${pct}%)`} value={count} max={vehiculos.length} color="var(--accent-primary)" />
+          })}
           <div style={{ marginTop: '1rem', marginBottom: '1rem' }}>
             <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#8b5cf6' }}>Por Energía</span>
           </div>
-          {Object.entries(distribucionEnergia).map(([energia, count]) => (
-            <Bar key={energia} label={energia} value={count} max={vehiculos.length} color="#8b5cf6" />
-          ))}
+          {Object.entries(distribucionEnergia).map(([energia, count]) => {
+            const pct = Math.round((count / vehiculos.length) * 100)
+            return <Bar key={energia} label={`${energia} (${pct}%)`} value={count} max={vehiculos.length} color="#8b5cf6" />
+          })}
           <div style={{ marginTop: '1rem', marginBottom: '1rem' }}>
             <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#f59e0b' }}>Por Estado</span>
           </div>
           {Object.entries(distribucionEstado).map(([estado, count]) => {
             const colores = { DISPONIBLE: 'var(--accent-primary)', EN_RUTA: '#8b5cf6', MANTENIMIENTO: '#f59e0b' }
-            return (
-              <Bar key={estado} label={estado} value={count} max={vehiculos.length} color={colores[estado] || 'var(--text-muted)'} />
-            )
+            const pct = Math.round((count / vehiculos.length) * 100)
+            return <Bar key={estado} label={`${estado} (${pct}%)`} value={count} max={vehiculos.length} color={colores[estado] || 'var(--text-muted)'} />
           })}
         </div>
       </section>
