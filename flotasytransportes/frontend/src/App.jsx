@@ -6,6 +6,7 @@ import ListaOrdenes from './components/Ordenes/ListaOrdenes'
 import ListaVehiculos from './components/Vehiculos/ListaVehiculos'
 import Reportes from './components/Reportes/Reportes'
 import CommandPanel from './components/Command/CommandPanel'
+import ToastContainer from './components/Toast/ToastContainer'
 
 function App() {
   const location = useLocation()
@@ -28,6 +29,7 @@ function App() {
         )}
       </main>
       <Footer />
+      <ToastContainer />
       <CommandPanel />
     </>
   )

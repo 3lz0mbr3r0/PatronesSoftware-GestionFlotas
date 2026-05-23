@@ -596,6 +596,11 @@ button {
   to { transform: rotate(360deg); }
 }
 
+@keyframes slideIn {
+  from { transform: translateX(100px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
 .empty-state {
   display: flex;
   flex-direction: column;

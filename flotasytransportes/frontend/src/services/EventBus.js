@@ -1,26 +1,31 @@
 class EventBus {
   constructor() {
-    this.listeners = {}
+    this.wrappers = {}
   }
 
   subscribe(event, callback) {
-    if (!this.listeners[event]) {
-      this.listeners[event] = []
+    const wrapper = (e) => callback(e.detail)
+    if (!this.wrappers[event]) {
+      this.wrappers[event] = new Map()
     }
-    this.listeners[event].push(callback)
+    this.wrappers[event].set(callback, wrapper)
+    window.addEventListener(event, wrapper)
     return () => this.unsubscribe(event, callback)
   }
 
   unsubscribe(event, callback) {
-    if (this.listeners[event]) {
-      this.listeners[event] = this.listeners[event].filter(cb => cb !== callback)
+    const map = this.wrappers[event]
+    if (!map) return
+    const wrapper = map.get(callback)
+    if (wrapper) {
+      window.removeEventListener(event, wrapper)
+      map.delete(callback)
     }
   }
 
   emit(event, data) {
-    if (this.listeners[event]) {
-      this.listeners[event].forEach(callback => callback(data))
-    }
+    console.log(`[EventBus] Emitiendo: ${event}`, data)
+    window.dispatchEvent(new CustomEvent(event, { detail: data }))
   }
 }
 

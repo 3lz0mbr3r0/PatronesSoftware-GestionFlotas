@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { vehiculosService, ordenesService, reportesService } from '../../services/api'
 import eventBus from '../../services/EventBus'
+import RouteMap from '../Map/RouteMap'
 
 function StatCard({ number, label }) {
   const [value, setValue] = useState(0)
@@ -78,22 +79,38 @@ function Dashboard() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    console.log('[Dashboard] useEffect - MONTAJE')
     cargarDatos()
-    const unsub1 = eventBus.subscribe('vehiculo:created', cargarDatos)
-    const unsub2 = eventBus.subscribe('vehiculo:deleted', cargarDatos)
-    const unsub3 = eventBus.subscribe('vehiculo:estadoChanged', cargarDatos)
-    const unsub4 = eventBus.subscribe('orden:created', cargarDatos)
-    const unsub5 = eventBus.subscribe('reporte:created', cargarDatos)
-    return () => { unsub1(); unsub2(); unsub3(); unsub4(); unsub5() }
+    const unsub1 = eventBus.subscribe('vehiculo:created', (data) => {
+      cargarDatos()
+    })
+    const unsub2 = eventBus.subscribe('vehiculo:deleted', (data) => {
+      cargarDatos()
+    })
+    const unsub3 = eventBus.subscribe('vehiculo:estadoChanged', (data) => {
+      cargarDatos()
+    })
+    const unsub4 = eventBus.subscribe('orden:created', (data) => {
+      cargarDatos()
+    })
+    const unsub5 = eventBus.subscribe('reporte:created', (data) => {
+      cargarDatos()
+    })
+    return () => {
+      console.log('[Dashboard] useEffect - LIMPIEZA')
+      unsub1(); unsub2(); unsub3(); unsub4(); unsub5()
+    }
   }, [])
 
   const cargarDatos = async () => {
+    console.log('[Dashboard] cargarDatos() ejecutándose')
     try {
       const [vehiculosData, ordenesData, reportesData] = await Promise.all([
         vehiculosService.getAll(),
         ordenesService.getAll(),
         reportesService.getAll()
       ])
+      console.log('[Dashboard] Datos cargados:', { vehiculos: vehiculosData.length, ordenes: ordenesData.length, reportes: reportesData.length })
       setVehiculos(vehiculosData)
       setOrdenes(ordenesData)
       setReportes(reportesData)
@@ -240,26 +257,7 @@ function Dashboard() {
         </div>
         <div className="hero-visual">
           <div className="map-placeholder">
-            <div className="map-grid">
-              <div className="map-route" style={{ '--delay': '0s', '--x': '20%', '--y': '30%' }}>
-                <div className="route-point origin"></div>
-                <div className="route-line"></div>
-                <div className="route-point destination"></div>
-              </div>
-              <div className="map-route" style={{ '--delay': '1s', '--x': '60%', '--y': '50%' }}>
-                <div className="route-point origin"></div>
-                <div className="route-line"></div>
-                <div className="route-point destination"></div>
-              </div>
-              <div className="map-route" style={{ '--delay': '2s', '--x': '40%', '--y': '70%' }}>
-                <div className="route-point origin"></div>
-                <div className="route-line"></div>
-                <div className="route-point destination"></div>
-              </div>
-            </div>
-            <div className="map-overlay">
-              <span>Mapa de Rutas</span>
-            </div>
+            <RouteMap vehiculos={vehiculos} ordenes={ordenes} />
           </div>
         </div>
       </section>
@@ -382,6 +380,8 @@ function Dashboard() {
           })}
         </div>
       </section>
+
+
     </>
   )
 }
