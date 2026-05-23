@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { ordenesService } from '../../services/api'
+import commandHistory, { CrearOrdenCommand } from '../../patterns/comandos'
 
 const inputStyle = {
   width: '100%',
@@ -64,7 +65,8 @@ function ListaOrdenes() {
         destinoLat: parseFloat(formData.destinoLat),
         destinoLng: parseFloat(formData.destinoLng)
       }
-      const res = await ordenesService.crearYAsignar(ordenData)
+      const cmd = new CrearOrdenCommand(ordenData)
+      const res = await commandHistory.ejecutar(cmd)
       setResultado(res)
       await cargarOrdenes()
       setShowForm(false)

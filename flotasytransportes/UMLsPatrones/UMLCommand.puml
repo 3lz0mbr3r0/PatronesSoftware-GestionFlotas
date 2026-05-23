@@ -1,0 +1,136 @@
+@startuml
+title Patrón Command - Sistema de Gestión de Flotas (Frontend)
+
+skinparam classAttributeIconSize 0
+
+' =========================
+' COMMAND (Interfaz)
+' =========================
+class Command {
+    + execute() : Object
+    + undo() : void
+    + getDescripcion() : String
+}
+
+note top of Command
+  Interfaz que define el contrato
+  para todas las operaciones del sistema.
+  execute(): ejecuta la operación.
+  undo(): revierte la operación.
+  getDescripcion(): texto legible para el historial.
+end note
+
+' =========================
+' CONCRETE COMMANDS
+' =========================
+class CrearVehiculoCommand {
+    - tipo : String
+    - vehiculoData : Object
+    - placaCreada : String
+    + execute() : Object
+    + undo() : void
+    + getDescripcion() : String
+}
+
+class EliminarVehiculoCommand {
+    - placa : String
+    + execute() : Object
+    + undo() : void
+    + getDescripcion() : String
+}
+
+class CambiarEstadoCommand {
+    - placa : String
+    - nuevoEstado : String
+    - estadoAnterior : String
+    + execute() : Object
+    + undo() : void
+    + getDescripcion() : String
+}
+
+class CrearOrdenCommand {
+    - ordenData : Object
+    - resultado : Object
+    + execute() : Object
+    + undo() : void
+    + getDescripcion() : String
+}
+
+class CrearReporteCommand {
+    - dto : Object
+    - resultado : Object
+    + execute() : Object
+    + undo() : void
+    + getDescripcion() : String
+}
+
+Command <|.. CrearVehiculoCommand
+Command <|.. EliminarVehiculoCommand
+Command <|.. CambiarEstadoCommand
+Command <|.. CrearOrdenCommand
+Command <|.. CrearReporteCommand
+
+' =========================
+' INVOKER (Singleton)
+' =========================
+class CommandHistory {
+    - history : List<Command>
+    - listeners : List<Function>
+    + ejecutar(command: Command) : Object
+    + deshacer() : void
+    + getHistorial() : List<Command>
+    + onCambio(callback: Function) : Function
+}
+
+note bottom of CommandHistory
+  Singleton que recibe comandos,
+  los ejecuta y los guarda en
+  el historial. Proporciona
+  deshacer() y notifica cambios
+  a los listeners (CommandPanel).
+end note
+
+CommandHistory --> Command : "ejecuta/deshace"
+CommandHistory --> "varios" : listeners
+
+' =========================
+' CLIENTE (Panel visual)
+' =========================
+class CommandPanel {
+    - abierto : boolean
+    - comandos : List<Command>
+    + handleDeshacer() : void
+}
+
+note bottom of CommandPanel
+  Botón flotante ⚡ en esquina
+  inferior derecha. Al abrirse,
+  muestra el historial de comandos
+  ejecutados con botón "↩ Deshacer"
+  en el último comando.
+end note
+
+CommandPanel --> CommandHistory : "observa"
+
+' =========================
+' NOTAS ADICIONALES
+' =========================
+note right of CrearVehiculoCommand
+  Al execute(): llama vehiculosService.createByTipo(),
+  guarda la placa creada, emite 'vehiculo:created'.
+  Al undo(): elimina el vehículo por placa.
+end note
+
+note right of CambiarEstadoCommand
+  Al execute(): llama vehiculosService.updateEstado().
+  Al undo(): restaura el estadoAnterior.
+  Sí tiene undo funcional.
+end note
+
+note right of EliminarVehiculoCommand
+  Al execute(): llama vehiculosService.delete().
+  Al undo(): lanza error porque no se puede
+  restaurar un vehículo eliminado sin datos.
+end note
+
+@enduml

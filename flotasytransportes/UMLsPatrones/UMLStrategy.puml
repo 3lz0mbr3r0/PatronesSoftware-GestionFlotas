@@ -1,0 +1,124 @@
+@startuml
+title Patrón Strategy - Sistema de Gestión de Flotas (Frontend)
+
+skinparam classAttributeIconSize 0
+
+' =========================
+' STRATEGY (Interfaz)
+' =========================
+class FiltroStrategy {
+    + getNombre() : String
+    + filtrar(vehiculos: List) : List
+}
+
+note top of FiltroStrategy
+  Interfaz que define el contrato
+  para todos los algoritmos de filtrado.
+  getNombre() retorna la etiqueta visible
+  en los botones de la UI.
+end note
+
+' =========================
+' CONCRETE STRATEGIES
+' =========================
+class FiltroTodosStrategy {
+    + getNombre() : String
+    + filtrar(vehiculos: List) : List
+}
+
+note bottom of FiltroTodosStrategy
+  Retorna la lista completa sin filtrar.
+  Nombre: "Todos"
+end note
+
+class FiltroPorTipoStrategy {
+    - tipo : String
+    + getNombre() : String
+    + filtrar(vehiculos: List) : List
+}
+
+note bottom of FiltroPorTipoStrategy
+  Filtra por tipo de vehículo:
+  CAMION, MOTO o FURGON.
+  Nombre: "Tipo: CAMION"
+end note
+
+class FiltroPorEnergiaStrategy {
+    - energia : String
+    + getNombre() : String
+    + filtrar(vehiculos: List) : List
+}
+
+class FiltroPorEstadoStrategy {
+    - estado : String
+    + getNombre() : String
+    + filtrar(vehiculos: List) : List
+}
+
+class FiltroProximoMantenimientoStrategy {
+    - umbralPct : int
+    + getNombre() : String
+    + filtrar(vehiculos: List) : List
+}
+
+note bottom of FiltroProximoMantenimientoStrategy
+  Filtra vehículos cuyo porcentaje
+  kilometrajeActual/limiteMantenimiento
+  supere el umbral (default 70%).
+  Nombre: "Próximo a mantenimiento (≥70%)"
+end note
+
+class FiltroPorKilometrajeStrategy {
+    - minKm : int
+    - maxKm : int
+    + getNombre() : String
+    + filtrar(vehiculos: List) : List
+}
+
+FiltroStrategy <|.. FiltroTodosStrategy
+FiltroStrategy <|.. FiltroPorTipoStrategy
+FiltroStrategy <|.. FiltroPorEnergiaStrategy
+FiltroStrategy <|.. FiltroPorEstadoStrategy
+FiltroStrategy <|.. FiltroProximoMantenimientoStrategy
+FiltroStrategy <|.. FiltroPorKilometrajeStrategy
+
+' =========================
+' FACTORY
+' =========================
+class "crearEstrategiasDisponibles" as Factory {
+    + {static} crearEstrategiasDisponibles(vehiculos: List) : List<FiltroStrategy>
+}
+
+note bottom of Factory
+  Analiza los datos actuales y genera
+  dinámicamente las estrategias disponibles.
+  Ej: si hay vehículos CAMION y MOTO,
+  crea FiltroPorTipoStrategy para cada uno.
+end note
+
+Factory --> FiltroStrategy : "genera"
+
+' =========================
+' CLIENTE
+' =========================
+class ListaVehiculos {
+    - vehiculos : List
+    - estrategia : FiltroStrategy
+    - estrategiasDisponibles : List
+    + {
+        vehiculosFiltrados = estrategia.filtrar(vehiculos)
+        render() renderiza botones + lista filtrada
+    }
+}
+
+note bottom of ListaVehiculos
+  Renderiza botones con cada estrategia.
+  Al hacer click, cambia la estrategia activa.
+  vehiculosFiltrados se recalcula automáticamente
+  porque es una expresión derivada del estado.
+end note
+
+ListaVehiculos --> Factory : "obtiene estrategias"
+ListaVehiculos --> FiltroStrategy : "aplica filtro"
+
+@enduml

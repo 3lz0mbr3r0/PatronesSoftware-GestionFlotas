@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 @Service
 public class OrdenService {
@@ -68,6 +69,14 @@ public class OrdenService {
 
         if (disponibles.isEmpty()) {
             throw new RuntimeException("No hay vehículos disponibles");
+        }
+
+        disponibles = disponibles.stream()
+                .filter(v -> v.getLatitud() != null && v.getLongitud() != null)
+                .collect(Collectors.toList());
+
+        if (disponibles.isEmpty()) {
+            throw new RuntimeException("No hay vehículos disponibles con coordenadas");
         }
 
         for (Vehiculo v : disponibles) {

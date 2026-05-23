@@ -39,6 +39,14 @@ export const vehiculosService = {
     return response.json()
   },
 
+  async updateEstado(placa, estado) {
+    const response = await fetch(`${API_BASE}/vehiculos/${placa}/estado?estado=${estado}`, {
+      method: 'PUT'
+    })
+    if (!response.ok) throw new Error('Error updating estado')
+    return response.json()
+  },
+
   async delete(placa) {
     const response = await fetch(`${API_BASE}/vehiculos/${placa}`, {
       method: 'DELETE'

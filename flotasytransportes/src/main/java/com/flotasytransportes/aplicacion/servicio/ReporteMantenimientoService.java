@@ -1,6 +1,8 @@
 package com.flotasytransportes.aplicacion.servicio;
 
 import com.flotasytransportes.dominio.modelo.ReporteMantenimiento;
+import com.flotasytransportes.dominio.modelo.Vehiculo;
+import com.flotasytransportes.dominio.modelo.EstadoVehiculo;
 import com.flotasytransportes.dominio.puertos.VehiculoRepositoryPort;
 import com.flotasytransportes.infraestructura.web.dto.ReporteMantenimientoDTO;
 import org.springframework.stereotype.Service;
@@ -21,12 +23,15 @@ public class ReporteMantenimientoService {
 
     public ReporteMantenimiento crearReporte(ReporteMantenimientoDTO dto) {
 
-    	// verificar si el vehículo existe
-        vehiculoRepository.buscarPorPlaca(dto.getPlacaVehiculo())
+    	// verificar si el vehículo existe y cambiar estado a MANTENIMIENTO
+        Vehiculo vehiculo = vehiculoRepository.buscarPorPlaca(dto.getPlacaVehiculo())
                 .orElseThrow(() -> new RuntimeException("El vehículo con placa "
                         + dto.getPlacaVehiculo() + " no existe"));
 
-        // si existe, crear el reporte con Builder
+        vehiculo.cambiarEstado(EstadoVehiculo.MANTENIMIENTO);
+        vehiculoRepository.guardar(vehiculo);
+
+        // crear el reporte con Builder
         ReporteMantenimiento reporte = new ReporteMantenimiento.Builder(
                 dto.getPlacaVehiculo(),
                 dto.getKilometraje(),
