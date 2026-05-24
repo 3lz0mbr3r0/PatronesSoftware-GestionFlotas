@@ -109,5 +109,30 @@ export const reportesService = {
       method: 'DELETE'
     })
     if (!response.ok) throw new Error('Error eliminando reporte')
+  },
+
+  async getOrdenadosPorFecha(dir = 'desc') {
+    const response = await fetch(`${API_BASE}/reportes/ordenados-por-fecha?dir=${dir}`)
+    if (!response.ok) throw new Error('Error fetching reportes ordenados')
+    return response.json()
+  },
+
+  async getPorRango(fechaDesde, fechaHasta) {
+    const params = new URLSearchParams({ fechaDesde, fechaHasta })
+    const response = await fetch(`${API_BASE}/reportes/por-rango?${params}`)
+    if (!response.ok) throw new Error('Error fetching reportes por rango')
+    return response.json()
+  },
+
+  async getProximos(kmUmbral = 5000) {
+    const response = await fetch(`${API_BASE}/reportes/proximos?kmUmbral=${kmUmbral}`)
+    if (!response.ok) throw new Error('Error fetching reportes próximos')
+    return response.json()
+  },
+
+  async getVehiculosProximos(kmUmbral = 5000) {
+    const response = await fetch(`${API_BASE}/reportes/vehiculos-proximos?kmUmbral=${kmUmbral}`)
+    if (!response.ok) throw new Error('Error fetching vehículos próximos')
+    return response.json()
   }
 }

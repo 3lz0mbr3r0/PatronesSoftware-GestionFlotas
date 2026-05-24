@@ -3,6 +3,7 @@ package com.flotasytransportes.infraestructura.web;
 import com.flotasytransportes.aplicacion.servicio.ReporteMantenimientoService;
 import com.flotasytransportes.dominio.modelo.ReporteMantenimiento;
 import com.flotasytransportes.infraestructura.web.dto.ReporteMantenimientoDTO;
+import com.flotasytransportes.infraestructura.web.dto.VehiculoProximoDTO;
 
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -26,6 +27,27 @@ public class ReporteMantenimientoController {
     @GetMapping
     public List<ReporteMantenimiento> listar() {
         return service.listarReportes();
+    }
+
+    @GetMapping("/ordenados-por-fecha")
+    public List<ReporteMantenimiento> listarOrdenados(@RequestParam(defaultValue = "desc") String dir) {
+        return service.listarOrdenadosPorFecha(dir);
+    }
+
+    @GetMapping("/por-rango")
+    public List<ReporteMantenimiento> listarPorRango(@RequestParam String fechaDesde,
+                                                      @RequestParam String fechaHasta) {
+        return service.listarPorRangoFechas(fechaDesde, fechaHasta);
+    }
+
+    @GetMapping("/proximos")
+    public List<ReporteMantenimiento> listarProximos(@RequestParam(defaultValue = "5000") Double kmUmbral) {
+        return service.listarProximos(kmUmbral);
+    }
+
+    @GetMapping("/vehiculos-proximos")
+    public List<VehiculoProximoDTO> listarVehiculosProximos(@RequestParam(defaultValue = "5000") Double kmUmbral) {
+        return service.listarVehiculosProximos(kmUmbral);
     }
 
     @DeleteMapping
