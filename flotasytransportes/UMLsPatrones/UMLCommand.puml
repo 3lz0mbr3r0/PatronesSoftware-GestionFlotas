@@ -34,6 +34,7 @@ class CrearVehiculoCommand {
 
 class EliminarVehiculoCommand {
     - placa : String
+    - datos : Object
     + execute() : Object
     + undo() : void
     + getDescripcion() : String
@@ -75,10 +76,13 @@ Command <|.. CrearReporteCommand
 ' =========================
 class CommandHistory {
     - history : List<Command>
+    - redoStack : List<Command>
     - listeners : List<Function>
     + ejecutar(command: Command) : Object
     + deshacer() : void
+    + rehacer() : void
     + getHistorial() : List<Command>
+    + getRedoHistorial() : List<Command>
     + onCambio(callback: Function) : Function
 }
 
@@ -86,11 +90,13 @@ note bottom of CommandHistory
   Singleton que recibe comandos,
   los ejecuta y los guarda en
   el historial. Proporciona
-  deshacer() y notifica cambios
-  a los listeners (CommandPanel).
+  deshacer(), rehacer() y notifica
+  cambios a los listeners.
+  Al ejecutar un nuevo comando se
+  limpia la pila de redo.
 end note
 
-CommandHistory --> Command : "ejecuta/deshace"
+CommandHistory --> Command : "ejecuta/deshace/rehace"
 CommandHistory --> "varios" : listeners
 
 ' =========================
@@ -99,15 +105,19 @@ CommandHistory --> "varios" : listeners
 class CommandPanel {
     - abierto : boolean
     - comandos : List<Command>
+    - redoComandos : List<Command>
     + handleDeshacer() : void
+    + handleRehacer() : void
 }
 
 note bottom of CommandPanel
   Botón flotante ⚡ en esquina
-  inferior derecha. Al abrirse,
-  muestra el historial de comandos
-  ejecutados con botón "↩ Deshacer"
-  en el último comando.
+  inferior derecha. Muestra el
+  historial de comandos ejecutados
+  con botón "↩ Deshacer" en el
+  último comando y "⟳ Rehacer"
+  en la parte inferior cuando
+  hay comandos rehechos.
 end note
 
 CommandPanel --> CommandHistory : "observa"
@@ -128,9 +138,26 @@ note right of CambiarEstadoCommand
 end note
 
 note right of EliminarVehiculoCommand
-  Al execute(): llama vehiculosService.delete().
-  Al undo(): lanza error porque no se puede
-  restaurar un vehículo eliminado sin datos.
+  Al execute(): obtiene los datos del vehículo
+  (vehiculosService.getByPlaca()), lo elimina
+  y emite 'vehiculo:deleted'.
+  Al undo(): restaura el vehículo llamando
+  a vehiculosService.createByTipo() con los
+  datos guardados y emite 'vehiculo:created'.
+end note
+
+note right of CrearOrdenCommand
+  Al execute(): llama ordenesService.crearYAsignar(),
+  guarda el resultado, emite 'orden:created'.
+  Al undo(): elimina la orden vía backend
+  (ordenesService.delete()) y emite 'orden:deleted'.
+end note
+
+note right of CrearReporteCommand
+  Al execute(): llama reportesService.create(),
+  guarda el resultado, emite 'reporte:created'.
+  Al undo(): elimina el reporte vía backend
+  (reportesService.delete()) y emite 'reporte:deleted'.
 end note
 
 @enduml

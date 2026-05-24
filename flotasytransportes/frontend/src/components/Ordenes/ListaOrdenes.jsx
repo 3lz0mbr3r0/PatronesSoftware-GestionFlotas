@@ -32,6 +32,7 @@ function ListaOrdenes() {
   const [showForm, setShowForm] = useState(false)
   const [loadingSubmit, setLoadingSubmit] = useState(false)
   const [resultado, setResultado] = useState(null)
+  const [ordenSeleccionada, setOrdenSeleccionada] = useState(null)
   const [formData, setFormData] = useState({
     origenLat: '',
     origenLng: '',
@@ -52,6 +53,10 @@ function ListaOrdenes() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleToggleDetalle = (codigo) => {
+    setOrdenSeleccionada(prev => prev === codigo ? null : codigo)
   }
 
   const handleSubmit = async (e) => {
@@ -264,28 +269,89 @@ function ListaOrdenes() {
         <div className="activity-list">
           {ordenes.map(orden => {
             const estadoStyle = ESTADOS[orden.estado] || { bg: 'var(--bg-tertiary)', color: 'var(--text-muted)' }
+            const isOpen = ordenSeleccionada === orden.codigoOrden
             return (
-              <div key={orden.codigoOrden} className="activity-item">
-                <div className="activity-icon orden">◬</div>
-                <div className="activity-content" style={{ flex: 1 }}>
-                  <span className="activity-title">{orden.codigoOrden}</span>
-                  <span className="activity-time">
-                    {orden.origenLat},{orden.origenLng} → {orden.destinoLat},{orden.destinoLng}
-                    {orden.vehiculoPlaca && ` • ${orden.vehiculoPlaca}`}
-                  </span>
-                  <span className="activity-time" style={{ fontSize: '0.7rem' }}>
-                    {formatFecha(orden.fechaCreacion)}
+              <div key={orden.codigoOrden}>
+                <div className="activity-item" onClick={() => handleToggleDetalle(orden.codigoOrden)}
+                  style={{ cursor: 'pointer', borderColor: isOpen ? 'var(--accent-primary)' : undefined }}>
+                  <div className="activity-icon orden">◬</div>
+                  <div className="activity-content" style={{ flex: 1 }}>
+                    <span className="activity-title">{orden.codigoOrden}</span>
+                    <span className="activity-time">
+                      {orden.origenLat},{orden.origenLng} → {orden.destinoLat},{orden.destinoLng}
+                      {orden.vehiculoPlaca && ` • ${orden.vehiculoPlaca}`}
+                    </span>
+                    <span className="activity-time" style={{ fontSize: '0.7rem' }}>
+                      {formatFecha(orden.fechaCreacion)}
+                    </span>
+                  </div>
+                  <div style={{
+                    padding: '0.25rem 0.75rem',
+                    background: estadoStyle.bg,
+                    color: estadoStyle.color,
+                    borderRadius: '4px',
+                    fontSize: '0.75rem'
+                  }}>
+                    {orden.estado}
+                  </div>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem', marginLeft: '0.5rem' }}>
+                    {isOpen ? '▲' : '▼'}
                   </span>
                 </div>
-                <div style={{
-                  padding: '0.25rem 0.75rem',
-                  background: estadoStyle.bg,
-                  color: estadoStyle.color,
-                  borderRadius: '4px',
-                  fontSize: '0.75rem'
-                }}>
-                  {orden.estado}
-                </div>
+                {isOpen && (
+                  <div className="stat-card" style={{ marginTop: '-0.5rem', marginBottom: '0.75rem', borderTopLeftRadius: 0, borderTopRightRadius: 0 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                      <div>
+                        <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>Estado</span>
+                        <p style={{ color: estadoStyle.color, fontWeight: 600, fontSize: '0.875rem' }}>{orden.estado}</p>
+                      </div>
+                      <div>
+                        <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>Vehículo</span>
+                        <p style={{ color: 'var(--accent-primary)', fontWeight: 600, fontSize: '0.875rem' }}>
+                          {orden.vehiculoPlaca || 'Sin asignar'}
+                        </p>
+                      </div>
+                      <div style={{ gridColumn: 'span 2' }}>
+                        <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>Fecha de creación</span>
+                        <p style={{ color: 'var(--text-primary)', fontSize: '0.875rem' }}>{formatFecha(orden.fechaCreacion)}</p>
+                      </div>
+                      <div>
+                        <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>Origen</span>
+                        <p style={{ color: 'var(--text-primary)', fontSize: '0.8rem', fontFamily: 'var(--font-mono)' }}>
+                          Lat: {orden.origenLat}<br />
+                          Lng: {orden.origenLng}
+                        </p>
+                      </div>
+                      <div>
+                        <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>Destino</span>
+                        <p style={{ color: 'var(--text-primary)', fontSize: '0.8rem', fontFamily: 'var(--font-mono)' }}>
+                          Lat: {orden.destinoLat}<br />
+                          Lng: {orden.destinoLng}
+                        </p>
+                      </div>
+                    </div>
+                    {orden.origenLat && orden.origenLng && orden.destinoLat && orden.destinoLng && (
+                      <a
+                        href={`https://www.google.com/maps/dir/${orden.origenLat},${orden.origenLng}/${orden.destinoLat},${orden.destinoLng}`}
+                        target="_blank" rel="noopener noreferrer"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.5rem',
+                          marginTop: '0.75rem',
+                          padding: '0.5rem 1rem',
+                          background: 'var(--accent-glow)',
+                          color: 'var(--accent-primary)',
+                          borderRadius: '6px',
+                          fontSize: '0.8125rem',
+                          textDecoration: 'none'
+                        }}>
+                        <span>🔗</span>
+                        Abrir en Google Maps
+                      </a>
+                    )}
+                  </div>
+                )}
               </div>
             )
           })}

@@ -7,7 +7,7 @@ skinparam classAttributeIconSize 0
 ' SUBJECT (Singleton)
 ' =========================
 class EventBus {
-    - listeners : Map<String, List<Function>>
+    - wrappers : Object
     + subscribe(event: String, callback: Function) : Function
     + unsubscribe(event: String, callback: Function)
     + emit(event: String, data: Object)
@@ -15,8 +15,10 @@ class EventBus {
 
 note left of EventBus
   Única instancia global en la aplicación.
-  Método subscribe retorna una función
-  de limpieza para el unsubscribe automático.
+  Internamente usa Map<event, Map<callback, wrapper>>
+  y delega en window.dispatchEvent(new CustomEvent())
+  y window.addEventListener().
+  subscribe() retorna función de limpieza.
 end note
 
 ' =========================
@@ -27,11 +29,13 @@ note "Eventos emitidos:\n
   vehiculo:deleted\n
   vehiculo:estadoChanged\n
   orden:created\n
-  reporte:created" as eventos
+  orden:deleted\n
+  reporte:created\n
+  reporte:deleted" as eventos
 EventBus .. eventos
 
 ' =========================
-' SUBJECTS CONCRETOS (Emisores)
+' SUBJECTS CONCRETOS (Emisores vía Commands)
 ' =========================
 class ListaVehiculos {
     + crearVehiculo() : void
@@ -41,18 +45,20 @@ class ListaVehiculos {
 
 class ListaOrdenes {
     + crearOrden() : void
+    + eliminarOrden() : void
 }
 
 class Reportes {
     + crearReporte() : void
+    + eliminarReporte() : void
 }
 
-ListaVehiculos -right-> EventBus : "emite eventos"
-ListaOrdenes -right-> EventBus : "emite eventos"
-Reportes -right-> EventBus : "emite eventos"
+ListaVehiculos -right-> EventBus : "emite eventos mediante comandos"
+ListaOrdenes -right-> EventBus : "emite eventos mediante comandos"
+Reportes -right-> EventBus : "emite eventos mediante comandos"
 
 ' =========================
-' OBSERVER CONCRETO
+' OBSERVERS CONCRETOS
 ' =========================
 class Dashboard {
     - vehiculos : List
@@ -61,26 +67,43 @@ class Dashboard {
     + cargarDatos() : void
 }
 note bottom of Dashboard
-  Se suscribe en useEffect a 5 eventos.
+  Se suscribe en useEffect a 7 eventos.
   Al recibir cualquier evento, recarga
   todos los datos automáticamente.
   Retorna función de limpieza que
   desuscribe todos los listeners.
 end note
 
-EventBus -left-> Dashboard : "notifica eventos"
+EventBus -left-> Dashboard : "notifica 7 eventos"
+
+class ToastContainer {
+    - toast : Object
+    + mostrarToast(mensaje: String) : void
+}
+note bottom of ToastContainer
+  Componente montado en App.jsx,
+  visible en todas las rutas.
+  Se suscribe a los 7 eventos
+  y muestra un toast animado
+  por 3 segundos en cada uno.
+end note
+
+EventBus -left-> ToastContainer : "notifica 7 eventos"
 
 ' =========================
 ' COMMAND HISTORY (usa EventBus)
 ' =========================
 class CommandHistory {
     - history : List<Command>
+    - redoStack : List<Command>
     + ejecutar(command: Command) : Object
     + deshacer() : void
+    + rehacer() : void
     + getHistorial() : List<Command>
+    + getRedoHistorial() : List<Command>
     + onCambio(callback: Function) : Function
 }
 
-CommandHistory --> EventBus : "emite eventos"
+CommandHistory --> EventBus : "emite eventos tras ejecutar/deshacer/rehacer"
 
 @enduml
