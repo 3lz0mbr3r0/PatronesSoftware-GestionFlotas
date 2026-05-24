@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { vehiculosService, ordenesService, reportesService } from '../../services/api'
 import eventBus from '../../services/EventBus'
 import RouteMap from '../Map/RouteMap'
+import DonutChart from './DonutChart'
 
 function StatCard({ number, label }) {
   const [value, setValue] = useState(0)
@@ -53,21 +54,6 @@ function QuickActions({ onAction }) {
         ))}
       </div>
     </section>
-  )
-}
-
-function Bar({ label, value, max, color }) {
-  const pct = max > 0 ? (value / max) * 100 : 0
-  return (
-    <div style={{ marginBottom: '0.5rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginBottom: '0.25rem' }}>
-        <span style={{ color: 'var(--text-secondary)' }}>{label}</span>
-        <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{value}</span>
-      </div>
-      <div style={{ height: '8px', background: 'var(--bg-secondary)', borderRadius: '4px', overflow: 'hidden' }}>
-        <div style={{ width: `${pct}%`, height: '100%', background: color, borderRadius: '4px', transition: 'width 1s ease' }}></div>
-      </div>
-    </div>
   )
 }
 
@@ -367,29 +353,22 @@ function Dashboard() {
       {/* #4: Distribución de la flota */}
       <section style={{ marginTop: '2rem' }}>
         <h2 className="section-title">Distribución de la Flota</h2>
-        <div className="stat-card">
-          <div style={{ marginBottom: '1rem' }}>
-            <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--accent-primary)' }}>Por Tipo</span>
-          </div>
-          {Object.entries(distribucionTipos).map(([tipo, count]) => {
-            const pct = Math.round((count / vehiculos.length) * 100)
-            return <Bar key={tipo} label={`${tipo} (${pct}%)`} value={count} max={vehiculos.length} color="var(--accent-primary)" />
-          })}
-          <div style={{ marginTop: '1rem', marginBottom: '1rem' }}>
-            <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#8b5cf6' }}>Por Energía</span>
-          </div>
-          {Object.entries(distribucionEnergia).map(([energia, count]) => {
-            const pct = Math.round((count / vehiculos.length) * 100)
-            return <Bar key={energia} label={`${energia} (${pct}%)`} value={count} max={vehiculos.length} color="#8b5cf6" />
-          })}
-          <div style={{ marginTop: '1rem', marginBottom: '1rem' }}>
-            <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#f59e0b' }}>Por Estado</span>
-          </div>
-          {Object.entries(distribucionEstado).map(([estado, count]) => {
-            const colores = { DISPONIBLE: 'var(--accent-primary)', EN_RUTA: '#8b5cf6', MANTENIMIENTO: '#f59e0b' }
-            const pct = Math.round((count / vehiculos.length) * 100)
-            return <Bar key={estado} label={`${estado} (${pct}%)`} value={count} max={vehiculos.length} color={colores[estado] || 'var(--text-muted)'} />
-          })}
+        <div className="donut-grid">
+          <DonutChart
+            data={Object.entries(distribucionTipos).map(([label, value]) => ({ label, value }))}
+            total={vehiculos.length}
+            title="Por Tipo"
+            colors={['#00d4aa', '#f59e0b', '#8b5cf6', '#ef4444', '#3b82f6']} />
+          <DonutChart
+            data={Object.entries(distribucionEnergia).map(([label, value]) => ({ label, value }))}
+            total={vehiculos.length}
+            title="Por Energía"
+            colors={['#f59e0b', '#ef4444', '#00d4aa', '#8b5cf6']} />
+          <DonutChart
+            data={Object.entries(distribucionEstado).map(([label, value]) => ({ label, value }))}
+            total={vehiculos.length}
+            title="Por Estado"
+            colors={['#00d4aa', '#8b5cf6', '#ef4444']} />
         </div>
       </section>
 
