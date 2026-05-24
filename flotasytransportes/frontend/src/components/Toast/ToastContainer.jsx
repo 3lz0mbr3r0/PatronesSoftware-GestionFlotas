@@ -20,7 +20,13 @@ export default function ToastContainer() {
     const unsub5 = eventBus.subscribe('reporte:created', (data) => {
       setToast({ mensaje: `Reporte generado — ${data.placaVehiculo} · ${data.tipoMantenimiento}` })
     })
-    return () => { unsub1(); unsub2(); unsub3(); unsub4(); unsub5() }
+    const unsub6 = eventBus.subscribe('orden:deleted', (data) => {
+      setToast({ mensaje: `Orden eliminada — ${data.codigoOrden}` })
+    })
+    const unsub7 = eventBus.subscribe('reporte:deleted', (data) => {
+      setToast({ mensaje: `Reporte eliminado — ${data.placa}` })
+    })
+    return () => { unsub1(); unsub2(); unsub3(); unsub4(); unsub5(); unsub6(); unsub7() }
   }, [])
 
   useEffect(() => {

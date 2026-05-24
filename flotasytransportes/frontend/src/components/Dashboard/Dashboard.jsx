@@ -96,9 +96,15 @@ function Dashboard() {
     const unsub5 = eventBus.subscribe('reporte:created', (data) => {
       cargarDatos()
     })
+    const unsub6 = eventBus.subscribe('orden:deleted', () => {
+      cargarDatos()
+    })
+    const unsub7 = eventBus.subscribe('reporte:deleted', () => {
+      cargarDatos()
+    })
     return () => {
       console.log('[Dashboard] useEffect - LIMPIEZA')
-      unsub1(); unsub2(); unsub3(); unsub4(); unsub5()
+      unsub1(); unsub2(); unsub3(); unsub4(); unsub5(); unsub6(); unsub7()
     }
   }, [])
 
@@ -254,6 +260,12 @@ function Dashboard() {
             <StatCard number={stats.enRuta} label="En Ruta" />
             <StatCard number={stats.mantenimiento} label="En Mantenimiento" />
           </div>
+          {stats.mantenimiento === 0 && reportes.length > 0 && (
+            <div className="hero-info">
+              <span className="hero-info-icon">◳</span>
+              <span className="hero-info-text">{reportes.length} reporte{reportes.length > 1 ? 's' : ''} de mantenimiento registrado{reportes.length > 1 ? 's' : ''} — los vehículos ya fueron marcados como disponibles</span>
+            </div>
+          )}
         </div>
         <div className="hero-visual">
           <div className="map-placeholder">
@@ -262,7 +274,7 @@ function Dashboard() {
         </div>
       </section>
 
-      <QuickActions onAction={handleAction} />
+      {/* <QuickActions onAction={handleAction} /> */}
 
       {/* #1: Actividad Reciente Real */}
       <section className="recent-activity">

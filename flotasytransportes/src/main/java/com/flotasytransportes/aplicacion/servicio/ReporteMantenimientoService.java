@@ -57,5 +57,13 @@ public class ReporteMantenimientoService {
     public List<ReporteMantenimiento> listarReportes() {
         return reportes;
     }
+
+    public void eliminarReporte(String placaVehiculo, String tipoMantenimiento, String fecha) {
+        reportes.removeIf(r ->
+            r.getPlacaVehiculo().equals(placaVehiculo) &&
+            r.getTipoMantenimiento().equals(tipoMantenimiento) &&
+            r.getFecha().equals(fecha)
+        );
+    }
     
 }

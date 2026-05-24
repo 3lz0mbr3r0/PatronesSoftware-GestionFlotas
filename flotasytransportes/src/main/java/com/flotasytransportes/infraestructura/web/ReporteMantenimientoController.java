@@ -28,4 +28,11 @@ public class ReporteMantenimientoController {
         return service.listarReportes();
     }
 
+    @DeleteMapping
+    public void eliminar(@RequestParam String placaVehiculo,
+                         @RequestParam String tipoMantenimiento,
+                         @RequestParam String fecha) {
+        service.eliminarReporte(placaVehiculo, tipoMantenimiento, fecha);
+    }
+
 }

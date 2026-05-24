@@ -73,6 +73,13 @@ export const ordenesService = {
       throw new Error(errorText || 'Error creando orden')
     }
     return response.json()
+  },
+
+  async delete(codigoOrden) {
+    const response = await fetch(`${API_BASE}/ordenes/${codigoOrden}`, {
+      method: 'DELETE'
+    })
+    if (!response.ok) throw new Error('Error eliminando orden')
   }
 }
 
@@ -94,5 +101,13 @@ export const reportesService = {
       throw new Error(errorText || 'Error creando reporte')
     }
     return response.json()
+  },
+
+  async delete(placaVehiculo, tipoMantenimiento, fecha) {
+    const params = new URLSearchParams({ placaVehiculo, tipoMantenimiento, fecha })
+    const response = await fetch(`${API_BASE}/reportes?${params}`, {
+      method: 'DELETE'
+    })
+    if (!response.ok) throw new Error('Error eliminando reporte')
   }
 }

@@ -36,16 +36,21 @@ class EliminarVehiculoCommand extends Command {
   constructor(placa) {
     super()
     this.placa = placa
+    this.datos = null
   }
 
   async execute() {
+    this.datos = await vehiculosService.getByPlaca(this.placa)
     await vehiculosService.delete(this.placa)
     eventBus.emit('vehiculo:deleted', { placa: this.placa })
   }
 
   async undo() {
-    // Cannot undo delete without data
-    throw new Error('No se puede deshacer una eliminación')
+    if (this.datos) {
+      const tipo = this.datos.tipo || 'CAMION'
+      await vehiculosService.createByTipo(tipo, this.datos)
+      eventBus.emit('vehiculo:created', this.datos)
+    }
   }
 
   getDescripcion() { return `Eliminar vehículo ${this.placa}` }
@@ -89,8 +94,10 @@ class CrearOrdenCommand extends Command {
   }
 
   async undo() {
-    // No delete endpoint for orders
-    throw new Error('No se puede deshacer una creación de orden')
+    if (this.resultado?.codigoOrden) {
+      await ordenesService.delete(this.resultado.codigoOrden)
+      eventBus.emit('orden:deleted', { codigoOrden: this.resultado.codigoOrden })
+    }
   }
 
   getDescripcion() { return `Crear orden ${this.resultado?.codigoOrden || '...'}` }
@@ -111,7 +118,14 @@ class CrearReporteCommand extends Command {
   }
 
   async undo() {
-    throw new Error('No se puede deshacer una creación de reporte')
+    if (this.resultado) {
+      await reportesService.delete(
+        this.resultado.placaVehiculo,
+        this.resultado.tipoMantenimiento,
+        this.resultado.fecha
+      )
+      eventBus.emit('reporte:deleted', { placa: this.resultado.placaVehiculo })
+    }
   }
 
   getDescripcion() { return `Crear reporte para ${this.dto.placaVehiculo} - ${this.dto.tipoMantenimiento}` }
@@ -120,11 +134,13 @@ class CrearReporteCommand extends Command {
 class CommandHistory {
   constructor() {
     this.history = []
+    this.redoStack = []
     this.listeners = []
   }
 
   async ejecutar(command) {
     try {
+      this.redoStack = []
       const resultado = await command.execute()
       this.history.push(command)
       this._notify()
@@ -142,6 +158,7 @@ class CommandHistory {
     const command = this.history.pop()
     try {
       await command.undo()
+      this.redoStack.push(command)
       this._notify()
     } catch (error) {
       this.history.push(command)
@@ -149,8 +166,27 @@ class CommandHistory {
     }
   }
 
+  async rehacer() {
+    if (this.redoStack.length === 0) {
+      throw new Error('No hay comandos para rehacer')
+    }
+    const command = this.redoStack.pop()
+    try {
+      await command.execute()
+      this.history.push(command)
+      this._notify()
+    } catch (error) {
+      this.redoStack.push(command)
+      throw error
+    }
+  }
+
   getHistorial() {
     return [...this.history]
+  }
+
+  getRedoHistorial() {
+    return [...this.redoStack]
   }
 
   onCambio(callback) {

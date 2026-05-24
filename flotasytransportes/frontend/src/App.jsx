@@ -1,4 +1,5 @@
 import { Routes, Route, useLocation } from 'react-router-dom'
+import { ThemeProvider } from './context/ThemeContext'
 import Header from './components/Layout/Header'
 import Footer from './components/Layout/Footer'
 import Dashboard from './components/Dashboard/Dashboard'
@@ -13,7 +14,7 @@ function App() {
   const showDashboard = location.pathname === '/'
 
   return (
-    <>
+    <ThemeProvider>
       <div className="background-pattern"></div>
       <Header />
       <main className="main">
@@ -31,7 +32,7 @@ function App() {
       <Footer />
       <ToastContainer />
       <CommandPanel />
-    </>
+    </ThemeProvider>
   )
 }
 

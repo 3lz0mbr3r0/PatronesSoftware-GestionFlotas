@@ -30,4 +30,9 @@ public class OrdenController {
     public List<OrdenTransporte> listar() {
         return ordenService.listarOrdenes();
     }
+
+    @DeleteMapping("/{codigoOrden}")
+    public void eliminar(@PathVariable String codigoOrden) {
+        ordenService.eliminarOrden(codigoOrden);
+    }
 }

@@ -155,4 +155,8 @@ public class OrdenService {
     public List<OrdenTransporte> listarOrdenes() {
         return ordenRepository.buscarTodas();
     }
+
+    public void eliminarOrden(String codigoOrden) {
+        ordenRepository.eliminarPorCodigo(codigoOrden);
+    }
 }

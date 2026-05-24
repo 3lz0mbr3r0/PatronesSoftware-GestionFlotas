@@ -4,11 +4,14 @@ import commandHistory from '../../patterns/comandos'
 export default function CommandPanel() {
   const [abierto, setAbierto] = useState(false)
   const [comandos, setComandos] = useState([])
+  const [redos, setRedos] = useState([])
 
   useEffect(() => {
     setComandos(commandHistory.getHistorial())
+    setRedos(commandHistory.getRedoHistorial())
     const unsubscribe = commandHistory.onCambio(() => {
       setComandos([...commandHistory.getHistorial()])
+      setRedos([...commandHistory.getRedoHistorial()])
     })
     return unsubscribe
   }, [])
@@ -16,6 +19,14 @@ export default function CommandPanel() {
   const handleDeshacer = async () => {
     try {
       await commandHistory.deshacer()
+    } catch (error) {
+      alert(error.message)
+    }
+  }
+
+  const handleRehacer = async () => {
+    try {
+      await commandHistory.rehacer()
     } catch (error) {
       alert(error.message)
     }
@@ -163,11 +174,31 @@ export default function CommandPanel() {
           <div style={{
             padding: '0.5rem 1rem',
             borderTop: '1px solid var(--border-subtle)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
             fontSize: '0.7rem',
-            color: 'var(--text-muted)',
-            textAlign: 'center'
+            color: 'var(--text-muted)'
           }}>
-            {comandos.length} comando{comandos.length !== 1 ? 's' : ''} ejecutado{comandos.length !== 1 ? 's' : ''}
+            <span>{comandos.length} comando{comandos.length !== 1 ? 's' : ''}</span>
+            <button
+              onClick={handleRehacer}
+              disabled={redos.length === 0}
+              style={{
+                padding: '0.3rem 0.6rem',
+                background: redos.length > 0 ? 'var(--bg-secondary)' : 'transparent',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: '6px',
+                color: redos.length > 0 ? 'var(--accent-primary)' : 'var(--text-muted)',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                cursor: redos.length > 0 ? 'pointer' : 'default',
+                opacity: redos.length > 0 ? 1 : 0.4
+              }}
+              title="Rehacer último comando deshecho"
+            >
+              ⟳ Rehacer
+            </button>
           </div>
         </div>
       )}
