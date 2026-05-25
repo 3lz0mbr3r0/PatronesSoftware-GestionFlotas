@@ -105,10 +105,6 @@ class ListaVehiculos {
     - vehiculos : List
     - estrategia : FiltroStrategy
     - estrategiasDisponibles : List
-    + {
-        vehiculosFiltrados = estrategia.filtrar(vehiculos)
-        render() renderiza botones + lista filtrada
-    }
 }
 
 note bottom of ListaVehiculos

@@ -80,6 +80,20 @@ export const ordenesService = {
       method: 'DELETE'
     })
     if (!response.ok) throw new Error('Error eliminando orden')
+  },
+
+  async completar(codigoOrden) {
+    const response = await fetch(`${API_BASE}/ordenes/${codigoOrden}/completar`, {
+      method: 'PUT'
+    })
+    if (!response.ok) throw new Error('Error completando orden')
+    return response.json()
+  },
+
+  async getByPlaca(placa) {
+    const response = await fetch(`${API_BASE}/ordenes/por-placa/${placa}`)
+    if (!response.ok) throw new Error('Error fetching órdenes por placa')
+    return response.json()
   }
 }
 
@@ -133,6 +147,12 @@ export const reportesService = {
   async getVehiculosProximos(kmUmbral = 5000) {
     const response = await fetch(`${API_BASE}/reportes/vehiculos-proximos?kmUmbral=${kmUmbral}`)
     if (!response.ok) throw new Error('Error fetching vehículos próximos')
+    return response.json()
+  },
+
+  async proyectar(placa) {
+    const response = await fetch(`${API_BASE}/reportes/proyeccion/${placa}`)
+    if (!response.ok) throw new Error('Error proyecting mantenimiento')
     return response.json()
   }
 }

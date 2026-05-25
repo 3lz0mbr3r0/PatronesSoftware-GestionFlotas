@@ -5,6 +5,7 @@ import com.flotasytransportes.dominio.modelo.Vehiculo;
 import com.flotasytransportes.dominio.modelo.EstadoVehiculo;
 import com.flotasytransportes.dominio.puertos.VehiculoRepositoryPort;
 import com.flotasytransportes.infraestructura.web.dto.ReporteMantenimientoDTO;
+import com.flotasytransportes.infraestructura.web.dto.ReporteProyeccionDTO;
 import com.flotasytransportes.infraestructura.web.dto.VehiculoProximoDTO;
 import org.springframework.stereotype.Service;
 
@@ -138,6 +139,67 @@ public class ReporteMantenimientoService {
 
         resultado.sort(Comparator.comparingDouble(VehiculoProximoDTO::getKmRestantes));
         return resultado;
+    }
+
+    public ReporteProyeccionDTO proyectarMantenimiento(String placa) {
+        Vehiculo vehiculo = vehiculoRepository.buscarPorPlaca(placa).orElse(null);
+        if (vehiculo == null || vehiculo.getKilometrajeActual() == null) {
+            return new ReporteProyeccionDTO(placa, null, null, null, null, null, "SIN_DATOS");
+        }
+
+        List<ReporteMantenimiento> reportesVehiculo = reportes.stream()
+            .filter(r -> r.getPlacaVehiculo().equals(placa))
+            .sorted(Comparator.comparing(ReporteMantenimiento::getFecha))
+            .collect(Collectors.toList());
+
+        Double ultimoKm = reportesVehiculo.isEmpty() ? null : reportesVehiculo.get(reportesVehiculo.size() - 1).getKilometraje();
+        Double promedioIntervalo = null;
+        Double proximoEstimado = vehiculo.getLimiteMantenimiento();
+        Long diasEstimados = null;
+        String riesgo = "BAJO";
+
+        if (reportesVehiculo.size() >= 2) {
+            double sumaIntervalos = 0;
+            int intervalos = 0;
+            for (int i = 1; i < reportesVehiculo.size(); i++) {
+                sumaIntervalos += reportesVehiculo.get(i).getKilometraje() - reportesVehiculo.get(i - 1).getKilometraje();
+                intervalos++;
+            }
+            promedioIntervalo = sumaIntervalos / intervalos;
+            proximoEstimado = Math.min(
+                (ultimoKm != null ? ultimoKm + promedioIntervalo : vehiculo.getLimiteMantenimiento()),
+                vehiculo.getLimiteMantenimiento()
+            );
+        }
+
+        Double kmRestantes = proximoEstimado - vehiculo.getKilometrajeActual();
+
+        if (kmRestantes != null) {
+            if (kmRestantes <= 0) riesgo = "CRITICO";
+            else if (kmRestantes <= 3000) riesgo = "ALTO";
+            else if (kmRestantes <= 8000) riesgo = "MEDIO";
+
+            if (reportesVehiculo.size() >= 2 && promedioIntervalo != null) {
+                long diffDays = 0;
+                String primeraFecha = reportesVehiculo.get(0).getFecha();
+                String ultimaFecha = reportesVehiculo.get(reportesVehiculo.size() - 1).getFecha();
+                try {
+                    java.time.LocalDate inicio = java.time.LocalDate.parse(primeraFecha);
+                    java.time.LocalDate fin = java.time.LocalDate.parse(ultimaFecha);
+                    diffDays = java.time.temporal.ChronoUnit.DAYS.between(inicio, fin);
+                    if (diffDays > 0 && promedioIntervalo > 0) {
+                        double kmPorDia = (reportesVehiculo.get(reportesVehiculo.size() - 1).getKilometraje()
+                            - reportesVehiculo.get(0).getKilometraje()) / (double) diffDays;
+                        if (kmPorDia > 0) {
+                            diasEstimados = (long) Math.ceil(kmRestantes / kmPorDia);
+                        }
+                    }
+                } catch (Exception ignored) {}
+            }
+        }
+
+        return new ReporteProyeccionDTO(placa, ultimoKm, promedioIntervalo,
+            proximoEstimado, kmRestantes, diasEstimados, riesgo);
     }
 
     public void eliminarReporte(String placaVehiculo, String tipoMantenimiento, String fecha) {

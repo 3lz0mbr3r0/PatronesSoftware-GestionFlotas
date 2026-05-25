@@ -3,6 +3,7 @@ package com.flotasytransportes.infraestructura.web;
 import com.flotasytransportes.aplicacion.servicio.ReporteMantenimientoService;
 import com.flotasytransportes.dominio.modelo.ReporteMantenimiento;
 import com.flotasytransportes.infraestructura.web.dto.ReporteMantenimientoDTO;
+import com.flotasytransportes.infraestructura.web.dto.ReporteProyeccionDTO;
 import com.flotasytransportes.infraestructura.web.dto.VehiculoProximoDTO;
 
 import org.springframework.web.bind.annotation.*;
@@ -48,6 +49,11 @@ public class ReporteMantenimientoController {
     @GetMapping("/vehiculos-proximos")
     public List<VehiculoProximoDTO> listarVehiculosProximos(@RequestParam(defaultValue = "5000") Double kmUmbral) {
         return service.listarVehiculosProximos(kmUmbral);
+    }
+
+    @GetMapping("/proyeccion/{placa}")
+    public ReporteProyeccionDTO proyectar(@PathVariable String placa) {
+        return service.proyectarMantenimiento(placa);
     }
 
     @DeleteMapping

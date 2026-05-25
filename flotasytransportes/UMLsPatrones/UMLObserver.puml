@@ -2,9 +2,43 @@
 title Patrón Observer - Sistema de Gestión de Flotas (Frontend)
 
 skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam nodesep 250
+skinparam ranksep 100
 
 ' =========================
-' SUBJECT (Singleton)
+' OBSERVERS CONCRETOS (Arriba)
+' =========================
+together {
+  class Dashboard {
+    - vehiculos : List
+    - ordenes : List
+    - reportes : List
+    + cargarDatos() : void
+  }
+  note bottom of Dashboard
+    Se suscribe en useEffect a 7 eventos.
+    Al recibir cualquier evento, recarga
+    todos los datos automáticamente.
+    Retorna función de limpieza que
+    desuscribe todos los listeners.
+  end note
+
+  class ToastContainer {
+    - toast : Object
+    + mostrarToast(mensaje: String) : void
+  }
+  note bottom of ToastContainer
+    Componente montado en App.jsx,
+    visible en todas las rutas.
+    Se suscribe a los 7 eventos
+    y muestra un toast animado
+    por 3 segundos en cada uno.
+  end note
+}
+
+' =========================
+' SUBJECT (Singleton, Medio)
 ' =========================
 class EventBus {
     - wrappers : Object
@@ -21,77 +55,39 @@ note left of EventBus
   subscribe() retorna función de limpieza.
 end note
 
-' =========================
-' EVENTOS EMITIDOS
-' =========================
-note "Eventos emitidos:\n
-  vehiculo:created\n
-  vehiculo:deleted\n
-  vehiculo:estadoChanged\n
-  orden:created\n
-  orden:deleted\n
-  reporte:created\n
-  reporte:deleted" as eventos
+note as eventos
+  Eventos emitidos:
+  vehiculo:created
+  vehiculo:deleted
+  vehiculo:estadoChanged
+  orden:created
+  orden:deleted
+  reporte:created
+  reporte:deleted
+end note
 EventBus .. eventos
 
 ' =========================
-' SUBJECTS CONCRETOS (Emisores vía Commands)
+' SUBJECTS CONCRETOS (Abajo)
 ' =========================
-class ListaVehiculos {
+together {
+  class ListaVehiculos {
     + crearVehiculo() : void
     + eliminarVehiculo() : void
     + cambiarEstado() : void
-}
-
-class ListaOrdenes {
+  }
+  class ListaOrdenes {
     + crearOrden() : void
     + eliminarOrden() : void
-}
-
-class Reportes {
+  }
+  class Reportes {
     + crearReporte() : void
     + eliminarReporte() : void
+  }
 }
 
-ListaVehiculos -right-> EventBus : "emite eventos mediante comandos"
-ListaOrdenes -right-> EventBus : "emite eventos mediante comandos"
-Reportes -right-> EventBus : "emite eventos mediante comandos"
-
 ' =========================
-' OBSERVERS CONCRETOS
-' =========================
-class Dashboard {
-    - vehiculos : List
-    - ordenes : List
-    - reportes : List
-    + cargarDatos() : void
-}
-note bottom of Dashboard
-  Se suscribe en useEffect a 7 eventos.
-  Al recibir cualquier evento, recarga
-  todos los datos automáticamente.
-  Retorna función de limpieza que
-  desuscribe todos los listeners.
-end note
-
-EventBus -left-> Dashboard : "notifica 7 eventos"
-
-class ToastContainer {
-    - toast : Object
-    + mostrarToast(mensaje: String) : void
-}
-note bottom of ToastContainer
-  Componente montado en App.jsx,
-  visible en todas las rutas.
-  Se suscribe a los 7 eventos
-  y muestra un toast animado
-  por 3 segundos en cada uno.
-end note
-
-EventBus -left-> ToastContainer : "notifica 7 eventos"
-
-' =========================
-' COMMAND HISTORY (usa EventBus)
+' COMMAND HISTORY
 ' =========================
 class CommandHistory {
     - history : List<Command>
@@ -104,6 +100,19 @@ class CommandHistory {
     + onCambio(callback: Function) : Function
 }
 
-CommandHistory --> EventBus : "emite eventos tras ejecutar/deshacer/rehacer"
+' =========================
+' CONEXIONES
+' =========================
+' EventBus notifica Observers (↑)
+EventBus -up-> Dashboard : "notifica 7 eventos"
+EventBus -up-> ToastContainer : "notifica 7 eventos"
+
+' Subjects emiten eventos a EventBus (↑)
+ListaVehiculos -up-> EventBus : "emite eventos\nmediante comandos"
+ListaOrdenes -up-> EventBus : "emite eventos\nmediante comandos"
+Reportes -up-> EventBus : "emite eventos\nmediante comandos"
+
+' CommandHistory emite eventos a EventBus (→ izquierda)
+CommandHistory -left-> EventBus : "emite eventos tras\nejecutar/deshacer/rehacer"
 
 @enduml

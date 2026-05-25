@@ -159,4 +159,25 @@ public class OrdenService {
     public void eliminarOrden(String codigoOrden) {
         ordenRepository.eliminarPorCodigo(codigoOrden);
     }
+
+    public OrdenTransporte completarOrden(String codigoOrden) {
+        OrdenTransporte orden = ordenRepository.buscarPorCodigo(codigoOrden)
+            .orElseThrow(() -> new RuntimeException("Orden no encontrada: " + codigoOrden));
+        orden.setEstado("COMPLETADA");
+
+        if (orden.getVehiculoPlaca() != null) {
+            vehiculoRepository.buscarPorPlaca(orden.getVehiculoPlaca()).ifPresent(v -> {
+                v.cambiarEstado(EstadoVehiculo.DISPONIBLE);
+                vehiculoRepository.guardar(v);
+            });
+        }
+
+        return ordenRepository.guardar(orden);
+    }
+
+    public List<OrdenTransporte> listarPorPlaca(String placa) {
+        return ordenRepository.buscarTodas().stream()
+            .filter(o -> placa.equals(o.getVehiculoPlaca()))
+            .collect(Collectors.toList());
+    }
 }
