@@ -39,6 +39,14 @@ function Header() {
             <span className="nav-icon">◳</span>
             Mantenimiento
           </NavLink>
+          <NavLink to="/rutas" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+            <span className="nav-icon">◰</span>
+            Rutas
+          </NavLink>
+          <NavLink to="/analytics" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+            <span className="nav-icon">◱</span>
+            Analytics
+          </NavLink>
         </nav>
         
         <div className="header-actions">
