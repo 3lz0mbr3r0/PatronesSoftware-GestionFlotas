@@ -9,5 +9,6 @@ public interface OrdenRepositoryPort {
     OrdenTransporte guardar(OrdenTransporte orden);
     Optional<OrdenTransporte> buscarPorCodigo(String codigoOrden);
     List<OrdenTransporte> buscarTodas();
+    void eliminarPorCodigo(String codigoOrden);
 
 }
