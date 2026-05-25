@@ -6,6 +6,8 @@ import Dashboard from './components/Dashboard/Dashboard'
 import ListaOrdenes from './components/Ordenes/ListaOrdenes'
 import ListaVehiculos from './components/Vehiculos/ListaVehiculos'
 import Reportes from './components/Reportes/Reportes'
+import HistorialRutas from './components/Rutas/HistorialRutas'
+import Analytics from './components/Analytics/Analytics'
 import CommandPanel from './components/Command/CommandPanel'
 import ToastContainer from './components/Toast/ToastContainer'
 
@@ -26,6 +28,8 @@ function App() {
             <Route path="/ordenes" element={<ListaOrdenes />} />
             <Route path="/vehiculos" element={<ListaVehiculos />} />
             <Route path="/reportes" element={<Reportes />} />
+            <Route path="/rutas" element={<HistorialRutas />} />
+            <Route path="/analytics" element={<Analytics />} />
           </Routes>
         )}
       </main>
