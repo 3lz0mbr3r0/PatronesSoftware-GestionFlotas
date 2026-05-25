@@ -1,0 +1,113 @@
+@startuml
+title Patrón State - Sistema de Gestión de Flotas (Frontend)
+
+skinparam classAttributeIconSize 0
+
+' =========================
+' STATE (Interfaz abstracta)
+' =========================
+class VehiculoEstado {
+    + getColor() : Object
+    + getLabel() : String
+    + canEdit() : boolean
+    + canDelete() : boolean
+    + canAssignOrder() : boolean
+    + canMarkAsDisponible() : boolean
+    + getAcciones() : List
+}
+
+note top of VehiculoEstado
+  Clase base abstracta.
+  Define comportamiento por defecto:
+  todos los métodos retornan false
+  excepto getColor() y getLabel().
+end note
+
+' =========================
+' CONCRETE STATES
+' =========================
+class DisponibleState {
+    + getColor() : Object
+    + getLabel() : String
+    + canEdit() : boolean
+    + canDelete() : boolean
+    + canAssignOrder() : boolean
+}
+
+note bottom of DisponibleState
+  Color: verde (#00d4aa)
+  Label: "DISPONIBLE"
+  Permisos: editar ✓, eliminar ✓,
+  asignar orden ✓
+end note
+
+class EnRutaState {
+    + getColor() : Object
+    + getLabel() : String
+    + canEdit() : boolean
+    + canDelete() : boolean
+    + canAssignOrder() : boolean
+}
+
+note bottom of EnRutaState
+  Color: morado (#8b5cf6)
+  Label: "EN_RUTA"
+  Permisos: editar ✗, eliminar ✗,
+  asignar orden ✗
+end note
+
+class MantenimientoState {
+    + getColor() : Object
+    + getLabel() : String
+    + canDelete() : boolean
+    + canMarkAsDisponible() : boolean
+    + getAcciones() : List
+}
+
+note bottom of MantenimientoState
+  Color: amarillo (#f59e0b)
+  Label: "MANTENIMIENTO"
+  Permisos: eliminar ✓,
+  marcar disponible ✓
+  Acción extra: botón "✓ Disponible"
+end note
+
+VehiculoEstado <|.. DisponibleState
+VehiculoEstado <|.. EnRutaState
+VehiculoEstado <|.. MantenimientoState
+
+' =========================
+' FACTORY
+' =========================
+class "getVehiculoState(estado)" as Factory {
+    + {static} getVehiculoState(estado: String) : VehiculoEstado
+}
+
+note bottom of Factory
+  Retorna la instancia correcta
+  según el string de estado.
+  Mapeo: {DISPONIBLE, EN_RUTA,
+  MANTENIMIENTO} -> clases concretas.
+end note
+
+Factory --> VehiculoEstado : "crea"
+
+' =========================
+' CLIENTE
+' =========================
+class ListaVehiculos {
+    - vehiculos : List
+    - estrategia : FiltroStrategy
+    + renderVehiculo(vehiculo) : JSX
+}
+
+note bottom of ListaVehiculos
+  Por cada vehículo llama a
+  getVehiculoState(vehiculo.estado)
+  para obtener color, label,
+  permisos y acciones disponibles.
+end note
+
+ListaVehiculos --> Factory : "usa"
+
+@enduml

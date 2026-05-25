@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 @Service
 public class OrdenService {
@@ -68,6 +69,14 @@ public class OrdenService {
 
         if (disponibles.isEmpty()) {
             throw new RuntimeException("No hay vehículos disponibles");
+        }
+
+        disponibles = disponibles.stream()
+                .filter(v -> v.getLatitud() != null && v.getLongitud() != null)
+                .collect(Collectors.toList());
+
+        if (disponibles.isEmpty()) {
+            throw new RuntimeException("No hay vehículos disponibles con coordenadas");
         }
 
         for (Vehiculo v : disponibles) {
@@ -145,5 +154,30 @@ public class OrdenService {
 
     public List<OrdenTransporte> listarOrdenes() {
         return ordenRepository.buscarTodas();
+    }
+
+    public void eliminarOrden(String codigoOrden) {
+        ordenRepository.eliminarPorCodigo(codigoOrden);
+    }
+
+    public OrdenTransporte completarOrden(String codigoOrden) {
+        OrdenTransporte orden = ordenRepository.buscarPorCodigo(codigoOrden)
+            .orElseThrow(() -> new RuntimeException("Orden no encontrada: " + codigoOrden));
+        orden.setEstado("COMPLETADA");
+
+        if (orden.getVehiculoPlaca() != null) {
+            vehiculoRepository.buscarPorPlaca(orden.getVehiculoPlaca()).ifPresent(v -> {
+                v.cambiarEstado(EstadoVehiculo.DISPONIBLE);
+                vehiculoRepository.guardar(v);
+            });
+        }
+
+        return ordenRepository.guardar(orden);
+    }
+
+    public List<OrdenTransporte> listarPorPlaca(String placa) {
+        return ordenRepository.buscarTodas().stream()
+            .filter(o -> placa.equals(o.getVehiculoPlaca()))
+            .collect(Collectors.toList());
     }
 }

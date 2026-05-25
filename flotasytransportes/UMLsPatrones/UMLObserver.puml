@@ -1,0 +1,118 @@
+@startuml
+title Patrón Observer - Sistema de Gestión de Flotas (Frontend)
+
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam nodesep 250
+skinparam ranksep 100
+
+' =========================
+' OBSERVERS CONCRETOS (Arriba)
+' =========================
+together {
+  class Dashboard {
+    - vehiculos : List
+    - ordenes : List
+    - reportes : List
+    + cargarDatos() : void
+  }
+  note bottom of Dashboard
+    Se suscribe en useEffect a 7 eventos.
+    Al recibir cualquier evento, recarga
+    todos los datos automáticamente.
+    Retorna función de limpieza que
+    desuscribe todos los listeners.
+  end note
+
+  class ToastContainer {
+    - toast : Object
+    + mostrarToast(mensaje: String) : void
+  }
+  note bottom of ToastContainer
+    Componente montado en App.jsx,
+    visible en todas las rutas.
+    Se suscribe a los 7 eventos
+    y muestra un toast animado
+    por 3 segundos en cada uno.
+  end note
+}
+
+' =========================
+' SUBJECT (Singleton, Medio)
+' =========================
+class EventBus {
+    - wrappers : Object
+    + subscribe(event: String, callback: Function) : Function
+    + unsubscribe(event: String, callback: Function)
+    + emit(event: String, data: Object)
+}
+
+note left of EventBus
+  Única instancia global en la aplicación.
+  Internamente usa Map<event, Map<callback, wrapper>>
+  y delega en window.dispatchEvent(new CustomEvent())
+  y window.addEventListener().
+  subscribe() retorna función de limpieza.
+end note
+
+note as eventos
+  Eventos emitidos:
+  vehiculo:created
+  vehiculo:deleted
+  vehiculo:estadoChanged
+  orden:created
+  orden:deleted
+  reporte:created
+  reporte:deleted
+end note
+EventBus .. eventos
+
+' =========================
+' SUBJECTS CONCRETOS (Abajo)
+' =========================
+together {
+  class ListaVehiculos {
+    + crearVehiculo() : void
+    + eliminarVehiculo() : void
+    + cambiarEstado() : void
+  }
+  class ListaOrdenes {
+    + crearOrden() : void
+    + eliminarOrden() : void
+  }
+  class Reportes {
+    + crearReporte() : void
+    + eliminarReporte() : void
+  }
+}
+
+' =========================
+' COMMAND HISTORY
+' =========================
+class CommandHistory {
+    - history : List<Command>
+    - redoStack : List<Command>
+    + ejecutar(command: Command) : Object
+    + deshacer() : void
+    + rehacer() : void
+    + getHistorial() : List<Command>
+    + getRedoHistorial() : List<Command>
+    + onCambio(callback: Function) : Function
+}
+
+' =========================
+' CONEXIONES
+' =========================
+' EventBus notifica Observers (↑)
+EventBus -up-> Dashboard : "notifica 7 eventos"
+EventBus -up-> ToastContainer : "notifica 7 eventos"
+
+' Subjects emiten eventos a EventBus (↑)
+ListaVehiculos -up-> EventBus : "emite eventos\nmediante comandos"
+ListaOrdenes -up-> EventBus : "emite eventos\nmediante comandos"
+Reportes -up-> EventBus : "emite eventos\nmediante comandos"
+
+' CommandHistory emite eventos a EventBus (→ izquierda)
+CommandHistory -left-> EventBus : "emite eventos tras\nejecutar/deshacer/rehacer"
+
+@enduml

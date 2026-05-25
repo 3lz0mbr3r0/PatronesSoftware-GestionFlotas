@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react'
 import { vehiculosService } from '../../services/api'
+import { getVehiculoState } from '../../patterns/VehiculoState'
+import { crearEstrategiasDisponibles, FiltroTodosStrategy } from '../../patterns/FiltroVehiculoStrategy'
+import commandHistory, { CrearVehiculoCommand, EliminarVehiculoCommand, CambiarEstadoCommand } from '../../patterns/comandos'
 
 const ESTADOS = ['DISPONIBLE', 'EN_RUTA', 'MANTENIMIENTO']
 const TIPOS = ['CAMION', 'MOTO', 'FURGON']
@@ -27,6 +30,8 @@ function ListaVehiculos() {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [loadingSubmit, setLoadingSubmit] = useState(false)
+  const [estrategia, setEstrategia] = useState(new FiltroTodosStrategy())
+  const [estrategiasDisponibles, setEstrategiasDisponibles] = useState([])
   const [formData, setFormData] = useState({
     placa: '',
     latitud: '',
@@ -46,12 +51,15 @@ function ListaVehiculos() {
     try {
       const data = await vehiculosService.getAll()
       setVehiculos(data)
+      setEstrategiasDisponibles(crearEstrategiasDisponibles(data))
     } catch (error) {
       console.error('Error cargando vehículos:', error)
     } finally {
       setLoading(false)
     }
   }
+
+  const vehiculosFiltrados = estrategia.filtrar(vehiculos)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -66,7 +74,8 @@ function ListaVehiculos() {
         limiteMantenimiento: formData.limiteMantenimiento ? parseFloat(formData.limiteMantenimiento) : 10000,
         estado: formData.estado
       }
-      await vehiculosService.createByTipo(formData.tipo, vehiculoData)
+      const cmd = new CrearVehiculoCommand(formData.tipo, vehiculoData)
+      await commandHistory.ejecutar(cmd)
       await cargarVehiculos()
       setShowForm(false)
       setFormData({
@@ -87,9 +96,10 @@ function ListaVehiculos() {
     }
   }
 
-  const handleEstadoChange = async (placa, nuevoEstado) => {
+  const handleEstadoChange = async (placa, nuevoEstado, estadoAnterior) => {
     try {
-      await vehiculosService.updateEstado(placa, nuevoEstado)
+      const cmd = new CambiarEstadoCommand(placa, nuevoEstado, estadoAnterior)
+      await commandHistory.ejecutar(cmd)
       await cargarVehiculos()
     } catch (error) {
       console.error('Error cambiando estado:', error)
@@ -97,23 +107,21 @@ function ListaVehiculos() {
   }
 
   const handleDelete = async (placa) => {
+    const v = vehiculos.find(x => x.placa === placa)
+    const state = getVehiculoState(v?.estado)
+    if (!state.canDelete()) {
+      alert('No se puede eliminar un vehículo en estado ' + v?.estado)
+      return
+    }
     if (window.confirm(`¿Eliminar vehículo ${placa}?`)) {
       try {
-        await vehiculosService.delete(placa)
+        const cmd = new EliminarVehiculoCommand(placa)
+        await commandHistory.ejecutar(cmd)
         await cargarVehiculos()
       } catch (error) {
         console.error('Error eliminando vehículo:', error)
       }
     }
-  }
-
-  const getEstadoColor = (estado) => {
-    const colors = {
-      DISPONIBLE: { bg: 'rgba(0, 212, 170, 0.15)', color: 'var(--accent-primary)' },
-      EN_RUTA: { bg: 'rgba(139, 92, 246, 0.15)', color: '#8b5cf6' },
-      MANTENIMIENTO: { bg: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b' }
-    }
-    return colors[estado] || colors.DISPONIBLE
   }
 
   const getTipoIcon = (tipo) => {
@@ -141,6 +149,28 @@ function ListaVehiculos() {
           <span className="action-icon" style={{ width: '36px', height: '36px', fontSize: '1rem' }}>⬡</span>
           <span className="action-title">Nuevo Vehículo</span>
         </button>
+      </div>
+
+      <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+        <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Filtrar:</span>
+        {estrategiasDisponibles.map((est, i) => (
+          <button
+            key={i}
+            onClick={() => setEstrategia(est)}
+            style={{
+              padding: '0.35rem 0.75rem',
+              background: est.getNombre() === estrategia.getNombre() ? 'var(--accent-primary)' : 'var(--bg-secondary)',
+              color: est.getNombre() === estrategia.getNombre() ? 'var(--bg-primary)' : 'var(--text-secondary)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: '6px',
+              fontSize: '0.75rem',
+              fontWeight: est.getNombre() === estrategia.getNombre() ? 600 : 400,
+              cursor: 'pointer'
+            }}
+          >
+            {est.getNombre()}
+          </button>
+        ))}
       </div>
 
       {showForm && (
@@ -270,7 +300,7 @@ function ListaVehiculos() {
         </div>
       )}
 
-      {vehiculos.length === 0 ? (
+      {vehiculosFiltrados.length === 0 ? (
         <div className="empty-state">
           <div className="empty-state-icon">◭</div>
           <div className="empty-state-text">No hay vehículos registrados</div>
@@ -278,8 +308,9 @@ function ListaVehiculos() {
         </div>
       ) : (
         <div className="activity-list">
-          {vehiculos.map(vehiculo => {
-            const estadoStyle = getEstadoColor(vehiculo.estado)
+          {vehiculosFiltrados.map(vehiculo => {
+            const state = getVehiculoState(vehiculo.estado)
+            const estadoStyle = state.getColor()
             return (
               <div key={vehiculo.placa} className="activity-item">
                 <div className="activity-icon vehiculo">{getTipoIcon(vehiculo.tipo || 'CAMION')}</div>
@@ -298,11 +329,11 @@ function ListaVehiculos() {
                   fontSize: '0.75rem',
                   fontWeight: 600
                 }}>
-                  {vehiculo.estado}
+                  {state.getLabel()}
                 </div>
-                {vehiculo.estado === 'MANTENIMIENTO' && (
+                {state.canMarkAsDisponible() && (
                   <button
-                    onClick={() => handleEstadoChange(vehiculo.placa, 'DISPONIBLE')}
+                    onClick={() => handleEstadoChange(vehiculo.placa, 'DISPONIBLE', vehiculo.estado)}
                     style={{ 
                       marginRight: '1rem',
                       padding: '0.25rem 0.75rem',
@@ -327,9 +358,11 @@ function ListaVehiculos() {
                     border: '1px solid var(--border-subtle)',
                     borderRadius: '6px',
                     color: 'var(--text-muted)',
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    opacity: state.canDelete() ? 1 : 0.3
                   }}
-                  title="Eliminar"
+                  title={state.canDelete() ? 'Eliminar' : 'No se puede eliminar'}
+                  // disabled={!state.canDelete()}  // Bloquea el click; preferimos mostrar alerta desde handleDelete
                 >
                   ✕
                 </button>

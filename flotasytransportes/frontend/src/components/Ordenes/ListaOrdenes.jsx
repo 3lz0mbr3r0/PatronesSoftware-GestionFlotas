@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { ordenesService } from '../../services/api'
+import commandHistory, { CrearOrdenCommand } from '../../patterns/comandos'
+import eventBus from '../../services/EventBus'
 
 const inputStyle = {
   width: '100%',
@@ -31,12 +33,15 @@ function ListaOrdenes() {
   const [showForm, setShowForm] = useState(false)
   const [loadingSubmit, setLoadingSubmit] = useState(false)
   const [resultado, setResultado] = useState(null)
+  const [ordenSeleccionada, setOrdenSeleccionada] = useState(null)
   const [formData, setFormData] = useState({
     origenLat: '',
     origenLng: '',
     destinoLat: '',
     destinoLng: ''
   })
+  const [filtroBusqueda, setFiltroBusqueda] = useState('')
+  const [completando, setCompletando] = useState(null)
 
   useEffect(() => {
     cargarOrdenes()
@@ -53,6 +58,10 @@ function ListaOrdenes() {
     }
   }
 
+  const handleToggleDetalle = (codigo) => {
+    setOrdenSeleccionada(prev => prev === codigo ? null : codigo)
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoadingSubmit(true)
@@ -64,7 +73,8 @@ function ListaOrdenes() {
         destinoLat: parseFloat(formData.destinoLat),
         destinoLng: parseFloat(formData.destinoLng)
       }
-      const res = await ordenesService.crearYAsignar(ordenData)
+      const cmd = new CrearOrdenCommand(ordenData)
+      const res = await commandHistory.ejecutar(cmd)
       setResultado(res)
       await cargarOrdenes()
       setShowForm(false)
@@ -74,6 +84,20 @@ function ListaOrdenes() {
       alert('Error al crear orden: ' + error.message)
     } finally {
       setLoadingSubmit(false)
+    }
+  }
+
+  const handleCompletar = async (codigoOrden) => {
+    setCompletando(codigoOrden)
+    try {
+      const res = await ordenesService.completar(codigoOrden)
+      eventBus.emit('orden:completada', res)
+      await cargarOrdenes()
+    } catch (error) {
+      console.error('Error completando orden:', error)
+      alert('Error: ' + error.message)
+    } finally {
+      setCompletando(null)
     }
   }
 
@@ -88,6 +112,13 @@ function ListaOrdenes() {
       minute: '2-digit'
     })
   }
+
+  const ordenesFiltradas = ordenes.filter(o => {
+    if (!filtroBusqueda) return true
+    const q = filtroBusqueda.toLowerCase()
+    return (o.vehiculoPlaca && o.vehiculoPlaca.toLowerCase().includes(q)) ||
+           (o.codigoOrden && o.codigoOrden.toLowerCase().includes(q))
+  })
 
   if (loading) {
     return (
@@ -166,6 +197,38 @@ function ListaOrdenes() {
           </button>
         </div>
       )}
+
+      <div style={{
+        display: 'flex', gap: '0.75rem', alignItems: 'center',
+        marginBottom: '1rem'
+      }}>
+        <input
+          type="text"
+          placeholder="Buscar por placa o código de orden..."
+          value={filtroBusqueda}
+          onChange={(e) => setFiltroBusqueda(e.target.value)}
+          style={{
+            flex: 1, maxWidth: '300px',
+            padding: '0.5rem 0.75rem',
+            background: 'var(--bg-secondary)',
+            border: '1px solid var(--border-subtle)',
+            borderRadius: '6px',
+            color: 'var(--text-primary)',
+            fontSize: '0.85rem'
+          }}
+        />
+        {filtroBusqueda && (
+          <button
+            onClick={() => setFiltroBusqueda('')}
+            style={{
+              padding: '0.4rem 0.75rem', borderRadius: '6px', fontSize: '0.8rem',
+              border: '1px solid var(--border-subtle)',
+              background: 'transparent', color: 'var(--text-muted)',
+              cursor: 'pointer'
+            }}
+          >Limpiar</button>
+        )}
+      </div>
 
       {showForm && (
         <div className="stat-card" style={{ marginBottom: '2rem' }}>
@@ -252,38 +315,121 @@ function ListaOrdenes() {
         </div>
       )}
 
-      {ordenes.length === 0 ? (
+      {ordenesFiltradas.length === 0 ? (
         <div className="empty-state">
           <div className="empty-state-icon">◬</div>
-          <div className="empty-state-text">No hay órdenes registradas</div>
-          <div className="empty-state-subtext">Crea tu primera orden de transporte</div>
+          <div className="empty-state-text">{filtroBusqueda ? 'No hay órdenes para esa búsqueda' : 'No hay órdenes registradas'}</div>
+          <div className="empty-state-subtext">{filtroBusqueda ? 'Prueba con otra placa o código' : 'Crea tu primera orden de transporte'}</div>
         </div>
       ) : (
         <div className="activity-list">
-          {ordenes.map(orden => {
+          {ordenesFiltradas.map(orden => {
             const estadoStyle = ESTADOS[orden.estado] || { bg: 'var(--bg-tertiary)', color: 'var(--text-muted)' }
+            const isOpen = ordenSeleccionada === orden.codigoOrden
             return (
-              <div key={orden.codigoOrden} className="activity-item">
-                <div className="activity-icon orden">◬</div>
-                <div className="activity-content" style={{ flex: 1 }}>
-                  <span className="activity-title">{orden.codigoOrden}</span>
-                  <span className="activity-time">
-                    {orden.origenLat},{orden.origenLng} → {orden.destinoLat},{orden.destinoLng}
-                    {orden.vehiculoPlaca && ` • ${orden.vehiculoPlaca}`}
-                  </span>
-                  <span className="activity-time" style={{ fontSize: '0.7rem' }}>
-                    {formatFecha(orden.fechaCreacion)}
+              <div key={orden.codigoOrden}>
+                <div className="activity-item" onClick={() => handleToggleDetalle(orden.codigoOrden)}
+                  style={{ cursor: 'pointer', borderColor: isOpen ? 'var(--accent-primary)' : undefined }}>
+                  <div className="activity-icon orden">◬</div>
+                  <div className="activity-content" style={{ flex: 1 }}>
+                    <span className="activity-title">{orden.codigoOrden}</span>
+                    <span className="activity-time">
+                      {orden.origenLat},{orden.origenLng} → {orden.destinoLat},{orden.destinoLng}
+                      {orden.vehiculoPlaca && ` • ${orden.vehiculoPlaca}`}
+                    </span>
+                    <span className="activity-time" style={{ fontSize: '0.7rem' }}>
+                      {formatFecha(orden.fechaCreacion)}
+                    </span>
+                  </div>
+                  <div style={{
+                    padding: '0.25rem 0.75rem',
+                    background: estadoStyle.bg,
+                    color: estadoStyle.color,
+                    borderRadius: '4px',
+                    fontSize: '0.75rem'
+                  }}>
+                    {orden.estado}
+                  </div>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem', marginLeft: '0.5rem' }}>
+                    {isOpen ? '▲' : '▼'}
                   </span>
                 </div>
-                <div style={{
-                  padding: '0.25rem 0.75rem',
-                  background: estadoStyle.bg,
-                  color: estadoStyle.color,
-                  borderRadius: '4px',
-                  fontSize: '0.75rem'
-                }}>
-                  {orden.estado}
-                </div>
+                {isOpen && (
+                  <div className="stat-card" style={{ marginTop: '-0.5rem', marginBottom: '0.75rem', borderTopLeftRadius: 0, borderTopRightRadius: 0 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                      <div>
+                        <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>Estado</span>
+                        <p style={{ color: estadoStyle.color, fontWeight: 600, fontSize: '0.875rem' }}>{orden.estado}</p>
+                      </div>
+                      <div>
+                        <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>Vehículo</span>
+                        <p style={{ color: 'var(--accent-primary)', fontWeight: 600, fontSize: '0.875rem' }}>
+                          {orden.vehiculoPlaca || 'Sin asignar'}
+                        </p>
+                      </div>
+                      <div style={{ gridColumn: 'span 2' }}>
+                        <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>Fecha de creación</span>
+                        <p style={{ color: 'var(--text-primary)', fontSize: '0.875rem' }}>{formatFecha(orden.fechaCreacion)}</p>
+                      </div>
+                      <div>
+                        <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>Origen</span>
+                        <p style={{ color: 'var(--text-primary)', fontSize: '0.8rem', fontFamily: 'var(--font-mono)' }}>
+                          Lat: {orden.origenLat}<br />
+                          Lng: {orden.origenLng}
+                        </p>
+                      </div>
+                      <div>
+                        <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>Destino</span>
+                        <p style={{ color: 'var(--text-primary)', fontSize: '0.8rem', fontFamily: 'var(--font-mono)' }}>
+                          Lat: {orden.destinoLat}<br />
+                          Lng: {orden.destinoLng}
+                        </p>
+                      </div>
+                    </div>
+                    {orden.origenLat && orden.origenLng && orden.destinoLat && orden.destinoLng && (
+                      <a
+                        href={`https://www.google.com/maps/dir/${orden.origenLat},${orden.origenLng}/${orden.destinoLat},${orden.destinoLng}`}
+                        target="_blank" rel="noopener noreferrer"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.5rem',
+                          marginTop: '0.75rem',
+                          padding: '0.5rem 1rem',
+                          background: 'var(--accent-glow)',
+                          color: 'var(--accent-primary)',
+                          borderRadius: '6px',
+                          fontSize: '0.8125rem',
+                          textDecoration: 'none'
+                        }}>
+                        <span>🔗</span>
+                        Abrir en Google Maps
+                      </a>
+                    )}
+                    {orden.estado !== 'COMPLETADA' && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleCompletar(orden.codigoOrden) }}
+                        disabled={completando === orden.codigoOrden}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.5rem',
+                          marginTop: '0.75rem',
+                          marginLeft: '0.5rem',
+                          padding: '0.5rem 1rem',
+                          background: 'rgba(0, 212, 170, 0.1)',
+                          color: 'var(--accent-primary)',
+                          border: '1px solid var(--accent-primary)',
+                          borderRadius: '6px',
+                          fontSize: '0.8125rem',
+                          cursor: completando === orden.codigoOrden ? 'not-allowed' : 'pointer',
+                          opacity: completando === orden.codigoOrden ? 0.6 : 1
+                        }}>
+                        {completando === orden.codigoOrden ? 'Completando...' : '✓ Marcar Completada'}
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             )
           })}
