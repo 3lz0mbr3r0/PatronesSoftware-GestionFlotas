@@ -1,0 +1,229 @@
+@media print {
+  .header, .footer, .nav, .theme-toggle,
+  .command-panel, .toast-container, .background-pattern,
+  .action-card, button, .report-controls,
+  .empty-state {
+    display: none !important;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+    font-family: 'Outfit', Arial, sans-serif;
+    font-size: 11pt;
+    line-height: 1.4;
+  }
+
+  .main {
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .stat-card {
+    box-shadow: none !important;
+    border: 1px solid #ccc !important;
+    background: white !important;
+    padding: 12px !important;
+    margin-bottom: 16px !important;
+    page-break-inside: avoid;
+  }
+
+  @page {
+    margin: 1.5cm;
+    size: A4;
+  }
+
+  .report-print-layout {
+    display: block !important;
+  }
+
+  .report-header {
+    text-align: center;
+    margin-bottom: 1.5cm;
+    border-bottom: 2px solid #333;
+    padding-bottom: 0.5cm;
+  }
+
+  .report-header h1 {
+    font-size: 22pt;
+    color: #000 !important;
+    margin: 0 0 4px 0;
+    font-weight: 700;
+  }
+
+  .report-subtitle {
+    font-size: 14pt;
+    color: #222 !important;
+    margin: 0 0 8px 0;
+  }
+
+  .report-date, .report-filters {
+    font-size: 9pt;
+    color: #333 !important;
+    margin: 2px 0;
+  }
+
+  .report-section {
+    margin-bottom: 1cm;
+    page-break-inside: avoid;
+  }
+
+  .report-section h2 {
+    font-size: 13pt;
+    color: #000 !important;
+    border-bottom: 1px solid #999;
+    padding-bottom: 4px;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9pt;
+    margin-bottom: 8px;
+  }
+
+  th, td {
+    border: 1px solid #999;
+    padding: 5px 7px;
+    text-align: left;
+    color: #000 !important;
+    background: white !important;
+  }
+
+  th {
+    background: #f0f0f0 !important;
+    font-weight: 600;
+    font-size: 8pt;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .report-num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .report-small {
+    font-size: 7.5pt;
+  }
+
+  .report-empty {
+    text-align: center;
+    color: #555 !important;
+    font-style: italic;
+    padding: 20px !important;
+  }
+
+  .report-total {
+    font-size: 9pt;
+    color: #333 !important;
+    text-align: right;
+    margin-top: 4px;
+    font-weight: 600;
+  }
+
+  .report-grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  .report-stat {
+    text-align: center;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+
+  .report-stat-num {
+    display: block;
+    font-size: 16pt;
+    font-weight: 700;
+    color: #000 !important;
+  }
+
+  .report-stat-label {
+    display: block;
+    font-size: 8pt;
+    color: #333 !important;
+    margin-top: 2px;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media screen {
+  .report-print-layout {
+    background: white;
+    color: #000;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .report-header h1,
+  .report-section h2 {
+    color: #000;
+  }
+
+  .report-stat-num {
+    color: #000;
+  }
+
+  .report-stat-label {
+    color: #444;
+  }
+
+  .report-print-layout table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+
+  .report-print-layout th,
+  .report-print-layout td {
+    border: 1px solid #ccc;
+    padding: 6px 10px;
+    text-align: left;
+  }
+
+  .report-print-layout th {
+    background: #f5f5f5;
+    color: #333;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .report-print-layout td {
+    color: #000;
+  }
+
+  .report-grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+  }
+
+  .report-stat {
+    text-align: center;
+    padding: 0.75rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background: #f5f5f5;
+  }
+
+  .report-empty {
+    text-align: center;
+    padding: 1rem;
+    color: #555;
+  }
+}

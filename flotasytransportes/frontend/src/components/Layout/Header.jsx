@@ -55,6 +55,14 @@ function Header() {
             <span className="nav-icon">◶</span>
             Calendario
           </NavLink>
+          <NavLink to="/comparador" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+            <span className="nav-icon">◷</span>
+            Comparador
+          </NavLink>
+          <NavLink to="/generar-reporte" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+            <span className="nav-icon">◰</span>
+            Reporte
+          </NavLink>
         </nav>
         
         <div className="header-actions">

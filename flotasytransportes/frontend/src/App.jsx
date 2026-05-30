@@ -10,6 +10,8 @@ import HistorialRutas from './components/Rutas/HistorialRutas'
 import Analytics from './components/Analytics/Analytics'
 import HistorialVehiculo from './components/HistorialVehiculo/HistorialVehiculo'
 import CalendarioMantenimiento from './components/CalendarioMantenimiento/CalendarioMantenimiento'
+import Comparador from './components/Comparador/Comparador'
+import GenerarReporte from './components/GenerarReporte/GenerarReporte'
 import CommandPanel from './components/Command/CommandPanel'
 import ToastContainer from './components/Toast/ToastContainer'
 
@@ -34,6 +36,8 @@ function App() {
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/historial-vehiculo" element={<HistorialVehiculo />} />
             <Route path="/calendario-mantenimiento" element={<CalendarioMantenimiento />} />
+            <Route path="/comparador" element={<Comparador />} />
+            <Route path="/generar-reporte" element={<GenerarReporte />} />
           </Routes>
         )}
       </main>
