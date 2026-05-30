@@ -40,13 +40,13 @@
   .report-header {
     text-align: center;
     margin-bottom: 1.5cm;
-    border-bottom: 2px solid #333;
+    border-bottom: 2px solid #00d4aa;
     padding-bottom: 0.5cm;
   }
 
   .report-header h1 {
     font-size: 22pt;
-    color: #000 !important;
+    color: #00d4aa !important;
     margin: 0 0 4px 0;
     font-weight: 700;
   }
@@ -70,8 +70,8 @@
 
   .report-section h2 {
     font-size: 13pt;
-    color: #000 !important;
-    border-bottom: 1px solid #999;
+    color: #00d4aa !important;
+    border-bottom: 1px solid #00d4aa;
     padding-bottom: 4px;
     margin-bottom: 8px;
     font-weight: 600;
@@ -93,7 +93,7 @@
   }
 
   th {
-    background: #f0f0f0 !important;
+    background: #e8faf5 !important;
     font-weight: 600;
     font-size: 8pt;
     text-transform: uppercase;
@@ -142,7 +142,7 @@
     display: block;
     font-size: 16pt;
     font-weight: 700;
-    color: #000 !important;
+    color: #00d4aa !important;
   }
 
   .report-stat-label {

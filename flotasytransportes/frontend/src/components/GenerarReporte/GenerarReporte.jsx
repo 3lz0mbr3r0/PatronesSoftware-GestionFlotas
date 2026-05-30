@@ -5,7 +5,7 @@ import './reporte-print.css'
 const inputStyle = {
   padding: '0.5rem 0.75rem',
   background: 'var(--bg-secondary)',
-  border: '1px solid var(--border-subtle)',
+  border: '1px solid var(--border-color)',
   borderRadius: '6px',
   color: 'var(--text-primary)',
   fontSize: '0.85rem'
@@ -13,7 +13,7 @@ const inputStyle = {
 
 const labelStyle = {
   fontSize: '0.8rem',
-  color: 'var(--text-secondary)',
+  color: 'var(--text-muted)',
   marginBottom: '0.3rem',
   display: 'block'
 }
@@ -306,9 +306,9 @@ function GenerarReporte() {
                   style={{
                     display: 'flex', alignItems: 'center', gap: '0.5rem',
                     padding: '0.5rem 1rem', borderRadius: '8px', fontSize: '0.85rem',
-                    border: incluye ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
+                    border: incluye ? '1px solid var(--accent-primary)' : '1px solid var(--border-color)',
                     background: incluye ? 'rgba(0,212,170,0.1)' : 'transparent',
-                    color: incluye ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                    color: incluye ? 'var(--accent-primary)' : 'var(--text-muted)',
                     cursor: 'pointer'
                   }}
                 >
@@ -316,7 +316,7 @@ function GenerarReporte() {
                     width: '18px', height: '18px', borderRadius: '4px',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     background: incluye ? 'var(--accent-primary)' : 'transparent',
-                    border: incluye ? 'none' : '2px solid var(--border-subtle)',
+                    border: incluye ? 'none' : '2px solid var(--border-color)',
                     color: incluye ? 'var(--bg-primary)' : 'transparent',
                     fontSize: '0.7rem', fontWeight: 700
                   }}>
@@ -370,7 +370,7 @@ function GenerarReporte() {
                 onClick={() => { setFechaDesde(''); setFechaHasta(''); setFiltroPlaca('') }}
                 style={{
                   padding: '0.5rem 1rem', borderRadius: '6px', fontSize: '0.8rem',
-                  border: '1px solid var(--border-subtle)', background: 'transparent',
+                  border: '1px solid var(--border-color)', background: 'transparent',
                   color: 'var(--text-muted)', cursor: 'pointer'
                 }}
               >Limpiar filtros</button>
