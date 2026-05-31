@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { vehiculosService, ordenesService, reportesService } from '../../services/api'
 import eventBus from '../../services/EventBus'
 import RouteMap from '../Map/RouteMap'
+import DonutChart from './DonutChart'
 
 function StatCard({ number, label }) {
   const [value, setValue] = useState(0)
@@ -56,49 +57,71 @@ function QuickActions({ onAction }) {
   )
 }
 
-function Bar({ label, value, max, color }) {
-  const pct = max > 0 ? (value / max) * 100 : 0
-  return (
-    <div style={{ marginBottom: '0.5rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginBottom: '0.25rem' }}>
-        <span style={{ color: 'var(--text-secondary)' }}>{label}</span>
-        <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{value}</span>
-      </div>
-      <div style={{ height: '8px', background: 'var(--bg-secondary)', borderRadius: '4px', overflow: 'hidden' }}>
-        <div style={{ width: `${pct}%`, height: '100%', background: color, borderRadius: '4px', transition: 'width 1s ease' }}></div>
-      </div>
-    </div>
-  )
-}
-
 function Dashboard() {
   const navigate = useNavigate()
   const [vehiculos, setVehiculos] = useState([])
   const [ordenes, setOrdenes] = useState([])
   const [reportes, setReportes] = useState([])
   const [loading, setLoading] = useState(true)
+  const [showHistorial, setShowHistorial] = useState(false)
+  const [proyecciones, setProyecciones] = useState([])
+  const [actividadEventos, setActividadEventos] = useState(() => {
+    try {
+      const saved = localStorage.getItem('actividadEventos')
+      return saved ? JSON.parse(saved) : []
+    } catch { return [] }
+  })
 
   useEffect(() => {
     console.log('[Dashboard] useEffect - MONTAJE')
     cargarDatos()
+    const agregarEvento = (tipo, titulo, detalle) => {
+      const nuevoEvento = {
+        id: `evt-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        tipo,
+        icon: tipo === 'vehiculo' ? '⬡' : tipo === 'reporte' ? '◳' : '◬',
+        titulo,
+        detalle,
+        fecha: new Date().toISOString()
+      }
+      setActividadEventos(prev => {
+        const nuevos = [nuevoEvento, ...prev].slice(0, 30)
+        try { localStorage.setItem('actividadEventos', JSON.stringify(nuevos)) } catch {}
+        return nuevos
+      })
+    }
     const unsub1 = eventBus.subscribe('vehiculo:created', (data) => {
       cargarDatos()
+      agregarEvento('vehiculo', `Vehículo Creado: ${data.placa || data?.placaVehiculo || ''}`, '')
     })
     const unsub2 = eventBus.subscribe('vehiculo:deleted', (data) => {
       cargarDatos()
+      agregarEvento('vehiculo', `Vehículo Eliminado: ${data?.placa || ''}`, '')
     })
     const unsub3 = eventBus.subscribe('vehiculo:estadoChanged', (data) => {
       cargarDatos()
     })
     const unsub4 = eventBus.subscribe('orden:created', (data) => {
       cargarDatos()
+      agregarEvento('orden', `Orden Creada: ${data.codigoOrden || ''}`, data.vehiculoPlaca ? `Vehículo: ${data.vehiculoPlaca}` : '')
     })
     const unsub5 = eventBus.subscribe('reporte:created', (data) => {
       cargarDatos()
+      agregarEvento('reporte', `Reporte Creado: ${data.tipoMantenimiento || ''}`, data.placaVehiculo ? `Vehículo: ${data.placaVehiculo}` : '')
+    })
+    const unsub6 = eventBus.subscribe('orden:deleted', (data) => {
+      cargarDatos()
+    })
+    const unsub7 = eventBus.subscribe('reporte:deleted', (data) => {
+      cargarDatos()
+    })
+    const unsub8 = eventBus.subscribe('orden:completada', (data) => {
+      cargarDatos()
+      agregarEvento('orden', `Orden Completada: ${data.codigoOrden || ''}`, data.vehiculoPlaca ? `Vehículo: ${data.vehiculoPlaca}` : '')
     })
     return () => {
       console.log('[Dashboard] useEffect - LIMPIEZA')
-      unsub1(); unsub2(); unsub3(); unsub4(); unsub5()
+      unsub1(); unsub2(); unsub3(); unsub4(); unsub5(); unsub6(); unsub7(); unsub8()
     }
   }, [])
 
@@ -114,6 +137,15 @@ function Dashboard() {
       setVehiculos(vehiculosData)
       setOrdenes(ordenesData)
       setReportes(reportesData)
+      const placas = [...new Set(reportesData.map(r => r.placaVehiculo).filter(Boolean))]
+      if (placas.length > 0) {
+        Promise.all(
+          placas.map(placa =>
+            reportesService.proyectar(placa).catch(() => null)
+          )
+        ).then(res => setProyecciones(res.filter(Boolean)))
+          .catch(() => {})
+      }
     } catch (error) {
       console.error('Error cargando datos:', error)
     } finally {
@@ -147,34 +179,9 @@ function Dashboard() {
   }
 
   // #1: Actividad Reciente Real
-  const actividadReciente = [
-    ...ordenes.map(o => {
-      const coords = o.origenLat ? `(${o.origenLat}, ${o.origenLng}) → (${o.destinoLat}, ${o.destinoLng})` : ''
-      return {
-        id: `ord-${o.codigoOrden}`,
-        tipo: 'orden',
-        icon: '◬',
-        titulo: `Orden ${o.codigoOrden}`,
-        detalle: `${o.estado || 'CREADA'}${o.vehiculoPlaca ? ` • Vehículo: ${o.vehiculoPlaca}` : ' • Sin asignar'}${coords ? ` • ${coords}` : ''}`,
-        tiempo: formatTiempo(o.fechaCreacion),
-        fecha: o.fechaCreacion
-      }
-    }),
-    ...reportes.map((r, i) => ({
-      id: `rep-${r.placaVehiculo}-${i}`,
-      tipo: 'mantenimiento',
-      icon: '◳',
-      titulo: `${r.tipoMantenimiento} - ${r.placaVehiculo}`,
-      detalle: [
-        r.prioridad ? `Prioridad: ${r.prioridad}` : '',
-        r.costoEstimado ? `$${r.costoEstimado.toLocaleString()}` : '',
-        r.taller ? `Taller: ${r.taller}` : '',
-        r.nivelDesgaste ? `Desgaste: ${r.nivelDesgaste}` : ''
-      ].filter(Boolean).join(' • '),
-      tiempo: formatTiempo(r.fecha),
-      fecha: r.fecha
-    }))
-  ].sort((a, b) => new Date(b.fecha || 0) - new Date(a.fecha || 0)).slice(0, 5)
+  const actividadReciente = actividadEventos
+    .sort((a, b) => new Date(b.fecha || 0) - new Date(a.fecha || 0))
+    .slice(0, 5)
 
   // #2: Vehículos próximos a mantenimiento
   const vehiculosMantenimiento = vehiculos
@@ -254,6 +261,12 @@ function Dashboard() {
             <StatCard number={stats.enRuta} label="En Ruta" />
             <StatCard number={stats.mantenimiento} label="En Mantenimiento" />
           </div>
+          {stats.mantenimiento === 0 && reportes.length > 0 && (
+            <div className="hero-info">
+              <span className="hero-info-icon">◳</span>
+              <span className="hero-info-text">{reportes.length} reporte{reportes.length > 1 ? 's' : ''} de mantenimiento registrado{reportes.length > 1 ? 's' : ''} — los vehículos ya fueron marcados como disponibles</span>
+            </div>
+          )}
         </div>
         <div className="hero-visual">
           <div className="map-placeholder">
@@ -262,11 +275,24 @@ function Dashboard() {
         </div>
       </section>
 
-      <QuickActions onAction={handleAction} />
+      {/* <QuickActions onAction={handleAction} /> */}
 
       {/* #1: Actividad Reciente Real */}
       <section className="recent-activity">
-        <h2 className="section-title">Actividad Reciente</h2>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h2 className="section-title" style={{ marginBottom: 0 }}>Actividad Reciente</h2>
+          {actividadEventos.length > 5 && (
+            <button
+              onClick={() => setShowHistorial(true)}
+              style={{
+                padding: '0.4rem 0.9rem', borderRadius: '6px', fontSize: '0.8rem',
+                border: '1px solid var(--border-subtle)',
+                background: 'transparent', color: 'var(--accent-primary)',
+                cursor: 'pointer'
+              }}
+            >Ver historial completo →</button>
+          )}
+        </div>
         <div className="activity-list">
           {actividadReciente.length === 0 ? (
             <div className="activity-empty">
@@ -279,13 +305,61 @@ function Dashboard() {
                 <div className={`activity-icon ${item.tipo}`}>{item.icon}</div>
                 <div className="activity-content">
                   <span className="activity-title">{item.titulo}</span>
-                  <span className="activity-time">{item.detalle} • {item.tiempo}</span>
+                    <span className="activity-time">{item.detalle} • {formatTiempo(item.fecha)}</span>
                 </div>
               </div>
             ))
           )}
         </div>
       </section>
+
+      {/* Predicciones */}
+      {proyecciones.length > 0 && (
+        <section style={{ marginTop: '2rem' }}>
+          <h2 className="section-title">Predicciones de Mantenimiento</h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
+            {proyecciones.map(p => {
+              const riesgoColors = {
+                CRITICO: { bg: 'rgba(239,68,68,0.15)', color: '#ef4444', border: '#ef4444' },
+                ALTO: { bg: 'rgba(245,158,11,0.15)', color: '#f59e0b', border: '#f59e0b' },
+                MEDIO: { bg: 'rgba(139,92,246,0.15)', color: '#8b5cf6', border: '#8b5cf6' },
+                BAJO: { bg: 'rgba(0,212,170,0.15)', color: 'var(--accent-primary)', border: 'var(--accent-primary)' }
+              }
+              const rc = riesgoColors[p.nivelRiesgo] || riesgoColors.BAJO
+              return (
+                <div key={p.placa} className="stat-card" style={{ borderColor: rc.border }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                    <strong style={{ color: 'var(--text-primary)', fontSize: '1rem' }}>{p.placa}</strong>
+                    <span style={{ padding: '0.2rem 0.6rem', borderRadius: '4px', fontSize: '0.7rem', background: rc.bg, color: rc.color }}>
+                      {p.nivelRiesgo}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+                    {p.ultimoKmReporte && <div>Último reporte: {Math.round(p.ultimoKmReporte).toLocaleString()} km</div>}
+                    {p.promedioIntervaloKm && <div>Intervalo promedio: {Math.round(p.promedioIntervaloKm).toLocaleString()} km</div>}
+                    <div style={{ color: 'var(--text-primary)', fontWeight: 600, marginTop: '0.25rem' }}>
+                      Próximo estimado: {Math.round(p.proximoEstimadoKm).toLocaleString()} km
+                    </div>
+                    {p.kmRestantes != null && (
+                      <div style={{ color: p.kmRestantes <= 0 ? '#ef4444' : 'var(--text-primary)' }}>
+                        {p.kmRestantes <= 0
+                          ? `⚠ ${Math.abs(p.kmRestantes).toLocaleString()} km vencido`
+                          : `${Math.round(p.kmRestantes).toLocaleString()} km restantes`
+                        }
+                      </div>
+                    )}
+                    {p.diasEstimados != null && (
+                      <div style={{ color: 'var(--accent-primary)' }}>
+                        ≈ {p.diasEstimados} día{p.diasEstimados !== 1 ? 's' : ''} estimados
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </section>
+      )}
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginTop: '2rem' }}>
         {/* #2: Vehículos próximos a mantenimiento */}
@@ -355,31 +429,76 @@ function Dashboard() {
       {/* #4: Distribución de la flota */}
       <section style={{ marginTop: '2rem' }}>
         <h2 className="section-title">Distribución de la Flota</h2>
-        <div className="stat-card">
-          <div style={{ marginBottom: '1rem' }}>
-            <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--accent-primary)' }}>Por Tipo</span>
-          </div>
-          {Object.entries(distribucionTipos).map(([tipo, count]) => {
-            const pct = Math.round((count / vehiculos.length) * 100)
-            return <Bar key={tipo} label={`${tipo} (${pct}%)`} value={count} max={vehiculos.length} color="var(--accent-primary)" />
-          })}
-          <div style={{ marginTop: '1rem', marginBottom: '1rem' }}>
-            <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#8b5cf6' }}>Por Energía</span>
-          </div>
-          {Object.entries(distribucionEnergia).map(([energia, count]) => {
-            const pct = Math.round((count / vehiculos.length) * 100)
-            return <Bar key={energia} label={`${energia} (${pct}%)`} value={count} max={vehiculos.length} color="#8b5cf6" />
-          })}
-          <div style={{ marginTop: '1rem', marginBottom: '1rem' }}>
-            <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#f59e0b' }}>Por Estado</span>
-          </div>
-          {Object.entries(distribucionEstado).map(([estado, count]) => {
-            const colores = { DISPONIBLE: 'var(--accent-primary)', EN_RUTA: '#8b5cf6', MANTENIMIENTO: '#f59e0b' }
-            const pct = Math.round((count / vehiculos.length) * 100)
-            return <Bar key={estado} label={`${estado} (${pct}%)`} value={count} max={vehiculos.length} color={colores[estado] || 'var(--text-muted)'} />
-          })}
+        <div className="donut-grid">
+          <DonutChart
+            data={Object.entries(distribucionTipos).map(([label, value]) => ({ label, value }))}
+            total={vehiculos.length}
+            title="Por Tipo"
+            colors={['#00d4aa', '#f59e0b', '#8b5cf6', '#ef4444', '#3b82f6']} />
+          <DonutChart
+            data={Object.entries(distribucionEnergia).map(([label, value]) => ({ label, value }))}
+            total={vehiculos.length}
+            title="Por Energía"
+            colors={['#f59e0b', '#ef4444', '#00d4aa', '#8b5cf6']} />
+          <DonutChart
+            data={Object.entries(distribucionEstado).map(([label, value]) => ({ label, value }))}
+            total={vehiculos.length}
+            title="Por Estado"
+            colors={['#00d4aa', '#8b5cf6', '#ef4444']} />
         </div>
       </section>
+
+      {/* Historial completo modal */}
+      {showHistorial && (() => {
+        const historialCompleto = [...actividadEventos]
+          .sort((a, b) => new Date(b.fecha || 0) - new Date(a.fecha || 0))
+
+        return (
+          <div style={{
+            position: 'fixed', inset: 0, zIndex: 1000,
+            background: 'rgba(0,0,0,0.6)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '1rem'
+          }} onClick={() => setShowHistorial(false)}>
+            <div className="stat-card" style={{
+              maxWidth: '700px', width: '100%', maxHeight: '80vh',
+              overflow: 'auto', margin: 0
+            }} onClick={(e) => e.stopPropagation()}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <h2 className="section-title" style={{ marginBottom: 0 }}>Historial Completo</h2>
+                <button
+                  onClick={() => setShowHistorial(false)}
+                  style={{
+                    width: '32px', height: '32px', borderRadius: '50%',
+                    border: '1px solid var(--border-subtle)',
+                    background: 'transparent', color: 'var(--text-muted)',
+                    cursor: 'pointer', fontSize: '1rem',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                  }}
+                >✕</button>
+              </div>
+              <div className="activity-list">
+                {historialCompleto.length === 0 ? (
+                  <div className="activity-empty">
+                    <span className="activity-icon-small">◌</span>
+                    <span className="activity-text">No hay actividad registrada</span>
+                  </div>
+                ) : (
+                  historialCompleto.map(item => (
+                    <div key={item.id} className="activity-item">
+                      <div className={`activity-icon ${item.tipo}`}>{item.icon}</div>
+                      <div className="activity-content">
+                        <span className="activity-title">{item.titulo}</span>
+                        <span className="activity-time">{item.detalle} • {formatTiempo(item.fecha)}</span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        )
+      })()}
 
 
     </>

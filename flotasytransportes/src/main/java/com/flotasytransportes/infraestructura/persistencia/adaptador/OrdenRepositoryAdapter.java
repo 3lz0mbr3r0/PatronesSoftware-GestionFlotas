@@ -41,6 +41,11 @@ public class OrdenRepositoryAdapter implements OrdenRepositoryPort {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public void eliminarPorCodigo(String codigoOrden) {
+        ordenJpaRepository.deleteById(codigoOrden);
+    }
+
     private OrdenTransporte mapToDomain(OrdenEntity entity) {
         if (entity == null) return null;
 

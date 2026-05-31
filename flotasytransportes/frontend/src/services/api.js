@@ -73,6 +73,27 @@ export const ordenesService = {
       throw new Error(errorText || 'Error creando orden')
     }
     return response.json()
+  },
+
+  async delete(codigoOrden) {
+    const response = await fetch(`${API_BASE}/ordenes/${codigoOrden}`, {
+      method: 'DELETE'
+    })
+    if (!response.ok) throw new Error('Error eliminando orden')
+  },
+
+  async completar(codigoOrden) {
+    const response = await fetch(`${API_BASE}/ordenes/${codigoOrden}/completar`, {
+      method: 'PUT'
+    })
+    if (!response.ok) throw new Error('Error completando orden')
+    return response.json()
+  },
+
+  async getByPlaca(placa) {
+    const response = await fetch(`${API_BASE}/ordenes/por-placa/${placa}`)
+    if (!response.ok) throw new Error('Error fetching órdenes por placa')
+    return response.json()
   }
 }
 
@@ -93,6 +114,45 @@ export const reportesService = {
       const errorText = await response.text()
       throw new Error(errorText || 'Error creando reporte')
     }
+    return response.json()
+  },
+
+  async delete(placaVehiculo, tipoMantenimiento, fecha) {
+    const params = new URLSearchParams({ placaVehiculo, tipoMantenimiento, fecha })
+    const response = await fetch(`${API_BASE}/reportes?${params}`, {
+      method: 'DELETE'
+    })
+    if (!response.ok) throw new Error('Error eliminando reporte')
+  },
+
+  async getOrdenadosPorFecha(dir = 'desc') {
+    const response = await fetch(`${API_BASE}/reportes/ordenados-por-fecha?dir=${dir}`)
+    if (!response.ok) throw new Error('Error fetching reportes ordenados')
+    return response.json()
+  },
+
+  async getPorRango(fechaDesde, fechaHasta) {
+    const params = new URLSearchParams({ fechaDesde, fechaHasta })
+    const response = await fetch(`${API_BASE}/reportes/por-rango?${params}`)
+    if (!response.ok) throw new Error('Error fetching reportes por rango')
+    return response.json()
+  },
+
+  async getProximos(kmUmbral = 5000) {
+    const response = await fetch(`${API_BASE}/reportes/proximos?kmUmbral=${kmUmbral}`)
+    if (!response.ok) throw new Error('Error fetching reportes próximos')
+    return response.json()
+  },
+
+  async getVehiculosProximos(kmUmbral = 5000) {
+    const response = await fetch(`${API_BASE}/reportes/vehiculos-proximos?kmUmbral=${kmUmbral}`)
+    if (!response.ok) throw new Error('Error fetching vehículos próximos')
+    return response.json()
+  },
+
+  async proyectar(placa) {
+    const response = await fetch(`${API_BASE}/reportes/proyeccion/${placa}`)
+    if (!response.ok) throw new Error('Error proyecting mantenimiento')
     return response.json()
   }
 }
