@@ -1,5 +1,10 @@
-import { useState, useEffect } from 'react'
-import { vehiculosService, ordenesService, reportesService } from '../../services/api'
+import { useState, useEffect, useRef } from 'react'
+import { vehiculosService } from '../../services/api'
+import { ValidarSeleccionHandler } from '../../patterns/chain/ValidarSeleccionHandler'
+import { EnriquecerDatosHandler } from '../../patterns/chain/EnriquecerDatosHandler'
+import { CalcularMetricasHandler } from '../../patterns/chain/CalcularMetricasHandler'
+import { DeterminarMejorHandler } from '../../patterns/chain/DeterminarMejorHandler'
+import { FormatearResultadoHandler } from '../../patterns/chain/FormatearResultadoHandler'
 
 const estadoColors = {
   DISPONIBLE: { bg: 'rgba(0,212,170,0.15)', color: 'var(--accent-primary)' },
@@ -19,12 +24,26 @@ function Comparador() {
   const [resultados, setResultados] = useState(null)
   const [loading, setLoading] = useState(true)
   const [loadingCompare, setLoadingCompare] = useState(false)
+  const cadenaRef = useRef(null)
 
   useEffect(() => {
     vehiculosService.getAll()
       .then(setVehiculos)
       .catch(console.error)
       .finally(() => setLoading(false))
+  }, [])
+
+  useEffect(() => {
+    const validar = new ValidarSeleccionHandler()
+    const enriquecer = new EnriquecerDatosHandler()
+    const calcular = new CalcularMetricasHandler()
+    const mejor = new DeterminarMejorHandler()
+    const formatear = new FormatearResultadoHandler()
+    validar.setSiguiente(enriquecer)
+          .setSiguiente(calcular)
+          .setSiguiente(mejor)
+          .setSiguiente(formatear)
+    cadenaRef.current = validar
   }, [])
 
   const toggleVehiculo = (placa) => {
@@ -36,43 +55,22 @@ function Comparador() {
   }
 
   const handleCompare = async () => {
-    if (selected.length < 2) return
     setLoadingCompare(true)
     try {
-      const [reportes, ordenes] = await Promise.all([
-        reportesService.getAll(),
-        ordenesService.getAll()
-      ])
-      const data = selected.map(placa => {
-        const v = vehiculos.find(v => v.placa === placa)
-        const reps = reportes.filter(r => r.placaVehiculo === placa)
-        const ords = ordenes.filter(o => o.vehiculoPlaca === placa)
-        return {
-          placa,
-          tipo: v?.tipo || 'CAMION',
-          estado: v?.estado || '—',
-          energia: v?.tipoEnergia || '—',
-          kmActual: v?.kilometrajeActual,
-          limiteMantenimiento: v?.limiteMantenimiento,
-          pctVida: v?.limiteMantenimiento
-            ? Math.min((v.kilometrajeActual / v.limiteMantenimiento) * 100, 100)
-            : null,
-          totalReportes: reps.length,
-          costoTotal: reps.reduce((s, r) => s + (r.costoEstimado || 0), 0),
-          costoPromedio: reps.length > 0
-            ? reps.reduce((s, r) => s + (r.costoEstimado || 0), 0) / reps.length
-            : 0,
-          ordenesCompletadas: ords.filter(o => o.estado === 'COMPLETADA').length,
-          totalOrdenes: ords.length,
-          horasMantenimiento: reps.reduce((s, r) => s + (r.tiempoEstimadoHoras || 0), 0),
-          ultimoReporte: reps.length > 0
-            ? reps.sort((a, b) => b.fecha.localeCompare(a.fecha))[0].fecha
-            : '—'
-        }
-      })
-      setResultados(data)
+      const contexto = {
+        selected,
+        vehiculos,
+        reportes: null,
+        ordenes: null,
+        resultados: null,
+        mejores: null,
+        output: null
+      }
+      const result = await cadenaRef.current.manejar(contexto)
+      setResultados(result.output || result.resultados)
     } catch (error) {
       console.error('Error comparando:', error)
+      if (error.message) alert(error.message)
     } finally {
       setLoadingCompare(false)
     }

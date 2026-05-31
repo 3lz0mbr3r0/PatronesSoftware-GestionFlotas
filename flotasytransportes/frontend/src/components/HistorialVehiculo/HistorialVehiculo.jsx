@@ -1,5 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { vehiculosService, ordenesService, reportesService } from '../../services/api'
+import { OriginadorHistorial } from '../../patterns/memento/OriginadorHistorial'
+import { CuidadorHistorial } from '../../patterns/memento/CuidadorHistorial'
 
 const estadoColors = {
   DISPONIBLE: { bg: 'rgba(0,212,170,0.15)', color: 'var(--accent-primary)' },
@@ -23,6 +25,18 @@ function HistorialVehiculo() {
   const [proyeccion, setProyeccion] = useState(null)
   const [loading, setLoading] = useState(true)
   const [loadingDetail, setLoadingDetail] = useState(false)
+  const [puedeDeshacer, setPuedeDeshacer] = useState(false)
+  const [puedeRehacer, setPuedeRehacer] = useState(false)
+  const [historialSnapshots, setHistorialSnapshots] = useState([])
+  const originadorRef = useRef(null)
+  const cuidadorRef = useRef(null)
+
+  useEffect(() => {
+    const originador = new OriginadorHistorial()
+    const cuidador = new CuidadorHistorial(originador)
+    originadorRef.current = originador
+    cuidadorRef.current = cuidador
+  }, [])
 
   useEffect(() => {
     vehiculosService.getAll()
@@ -30,6 +44,17 @@ function HistorialVehiculo() {
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [])
+
+  const guardarSnapshot = (placa) => {
+    const originador = originadorRef.current
+    const cuidador = cuidadorRef.current
+    if (!originador || !cuidador) return
+    originador.setEstado({ placa, vehiculo, reportes, ordenes, proyeccion })
+    cuidador.guardar(`Vehículo: ${placa}`)
+    setPuedeDeshacer(cuidador.puedeDeshacer())
+    setPuedeRehacer(cuidador.puedeRehacer())
+    setHistorialSnapshots(cuidador.obtenerHistorial())
+  }
 
   const cargarHistorial = async (placa) => {
     if (!placa) {
@@ -58,9 +83,48 @@ function HistorialVehiculo() {
     }
   }
 
+  useEffect(() => {
+    if (!selectedPlaca || !vehiculo) return
+    if (!loadingDetail) {
+      guardarSnapshot(selectedPlaca)
+    }
+  }, [selectedPlaca, vehiculo, reportes, ordenes, proyeccion, loadingDetail])
+
   const handleSelect = (placa) => {
     setSelectedPlaca(placa)
     cargarHistorial(placa)
+  }
+
+  const aplicarEstadoMemento = (estado) => {
+    setSelectedPlaca(estado.placa)
+    setVehiculo(estado.vehiculo)
+    setReportes(estado.reportes)
+    setOrdenes(estado.ordenes)
+    setProyeccion(estado.proyeccion)
+  }
+
+  const handleDeshacer = () => {
+    const cuidador = cuidadorRef.current
+    if (!cuidador) return
+    const memento = cuidador.deshacer()
+    if (memento) {
+      aplicarEstadoMemento(memento.getEstado())
+      setPuedeDeshacer(cuidador.puedeDeshacer())
+      setPuedeRehacer(cuidador.puedeRehacer())
+      setHistorialSnapshots(cuidador.obtenerHistorial())
+    }
+  }
+
+  const handleRehacer = () => {
+    const cuidador = cuidadorRef.current
+    if (!cuidador) return
+    const memento = cuidador.rehacer()
+    if (memento) {
+      aplicarEstadoMemento(memento.getEstado())
+      setPuedeDeshacer(cuidador.puedeDeshacer())
+      setPuedeRehacer(cuidador.puedeRehacer())
+      setHistorialSnapshots(cuidador.obtenerHistorial())
+    }
   }
 
   if (loading) {
@@ -80,24 +144,75 @@ function HistorialVehiculo() {
       </div>
 
       <div className="stat-card" style={{ marginBottom: '2rem', padding: '1rem 1.5rem' }}>
-        <label style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', display: 'block' }}>
-          Seleccionar vehículo
-        </label>
-        <select
-          value={selectedPlaca}
-          onChange={(e) => handleSelect(e.target.value)}
-          style={{
-            width: '100%', maxWidth: '400px', padding: '0.75rem 1rem',
-            background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)',
-            borderRadius: '8px', color: 'var(--text-primary)', fontSize: '1rem',
-            cursor: 'pointer'
-          }}
-        >
-          <option value="">— Seleccione un vehículo —</option>
-          {vehiculos.map(v => (
-            <option key={v.placa} value={v.placa}>{v.placa} — {v.tipo || 'CAMION'} • {v.estado}</option>
-          ))}
-        </select>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', gap: '1rem', flexWrap: 'wrap' }}>
+          <div style={{ flex: 1, minWidth: '250px' }}>
+            <label style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', display: 'block' }}>
+              Seleccionar vehículo
+            </label>
+            <select
+              value={selectedPlaca}
+              onChange={(e) => handleSelect(e.target.value)}
+              style={{
+                width: '100%', maxWidth: '400px', padding: '0.75rem 1rem',
+                background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)',
+                borderRadius: '8px', color: 'var(--text-primary)', fontSize: '1rem',
+                cursor: 'pointer'
+              }}
+            >
+              <option value="">— Seleccione un vehículo —</option>
+              {vehiculos.map(v => (
+                <option key={v.placa} value={v.placa}>{v.placa} — {v.tipo || 'CAMION'} • {v.estado}</option>
+              ))}
+            </select>
+          </div>
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+              {historialSnapshots.length} snapshot{historialSnapshots.length !== 1 ? 's' : ''}
+            </span>
+            <button
+              onClick={handleDeshacer}
+              disabled={!puedeDeshacer}
+              title="Deshacer (anterior vehículo)"
+              style={{
+                padding: '0.5rem 0.75rem', borderRadius: '6px', fontSize: '0.85rem',
+                border: '1px solid var(--border-color)',
+                background: puedeDeshacer ? 'var(--bg-secondary)' : 'transparent',
+                color: puedeDeshacer ? 'var(--accent-primary)' : 'var(--text-muted)',
+                cursor: puedeDeshacer ? 'pointer' : 'not-allowed',
+                opacity: puedeDeshacer ? 1 : 0.4
+              }}
+            >◀ Anterior</button>
+            <button
+              onClick={handleRehacer}
+              disabled={!puedeRehacer}
+              title="Rehacer (siguiente vehículo)"
+              style={{
+                padding: '0.5rem 0.75rem', borderRadius: '6px', fontSize: '0.85rem',
+                border: '1px solid var(--border-color)',
+                background: puedeRehacer ? 'var(--bg-secondary)' : 'transparent',
+                color: puedeRehacer ? 'var(--accent-primary)' : 'var(--text-muted)',
+                cursor: puedeRehacer ? 'pointer' : 'not-allowed',
+                opacity: puedeRehacer ? 1 : 0.4
+              }}
+            >Siguiente ▶</button>
+          </div>
+        </div>
+        {historialSnapshots.length > 0 && (
+          <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.35rem', flexWrap: 'wrap', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginRight: '0.25rem' }}>Historial:</span>
+            {historialSnapshots.map((s, i) => (
+              <span key={s.id} style={{
+                fontSize: '0.65rem', padding: '0.15rem 0.4rem', borderRadius: '4px',
+                background: i === historialSnapshots.length - 1 ? 'rgba(0,212,170,0.15)' : 'transparent',
+                border: '1px solid var(--border-subtle)',
+                color: i === historialSnapshots.length - 1 ? 'var(--accent-primary)' : 'var(--text-muted)',
+                whiteSpace: 'nowrap'
+              }}>
+                {i + 1}. {s.nombre}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
       {loadingDetail && (

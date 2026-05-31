@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react'
 import { vehiculosService, ordenesService, reportesService } from '../../services/api'
+import { ReporteCompleto } from '../../patterns/template/ReporteCompleto'
+import { ReporteResumido } from '../../patterns/template/ReporteResumido'
+import { ReporteProyeccion } from '../../patterns/template/ReporteProyeccion'
 import './reporte-print.css'
 
 const inputStyle = {
@@ -49,6 +52,23 @@ function GenerarReporte() {
   const [fechaDesde, setFechaDesde] = useState('')
   const [fechaHasta, setFechaHasta] = useState('')
   const [filtroPlaca, setFiltroPlaca] = useState('')
+  const [tipoReporte, setTipoReporte] = useState('COMPLETO')
+  const [seccionesRender, setSeccionesRender] = useState([])
+
+  const factoryTemplate = {
+    COMPLETO: () => new ReporteCompleto(),
+    RESUMIDO: () => new ReporteResumido(),
+    PROYECCION: () => new ReporteProyeccion()
+  }
+
+  const handlePreview = async () => {
+    const template = factoryTemplate[tipoReporte]()
+    const datos = { vehiculos, ordenes, reportes, proximos }
+    const filtros = { fechaDesde, fechaHasta, filtroPlaca, secciones }
+    const resultado = await template.generar(datos, filtros)
+    setSeccionesRender(resultado)
+    setPreview(true)
+  }
 
   useEffect(() => {
     Promise.all([
@@ -73,32 +93,6 @@ function GenerarReporte() {
     )
   }
 
-  const ordenesFiltradas = ordenes.filter(o => {
-    if (filtroPlaca && o.vehiculoPlaca !== filtroPlaca) return false
-    if (fechaDesde && o.fechaCreacion) {
-      const f = new Date(o.fechaCreacion).toISOString().split('T')[0]
-      if (f < fechaDesde) return false
-    }
-    if (fechaHasta && o.fechaCreacion) {
-      const f = new Date(o.fechaCreacion).toISOString().split('T')[0]
-      if (f > fechaHasta) return false
-    }
-    return true
-  })
-
-  const reportesFiltrados = reportes.filter(r => {
-    if (filtroPlaca && r.placaVehiculo !== filtroPlaca) return false
-    if (fechaDesde && r.fecha < fechaDesde) return false
-    if (fechaHasta && r.fecha > fechaHasta) return false
-    return true
-  })
-
-  const vehiculosFiltrados = filtroPlaca
-    ? vehiculos.filter(v => v.placa === filtroPlaca)
-    : vehiculos
-
-  const totalCosto = reportesFiltrados.reduce((s, r) => s + (r.costoEstimado || 0), 0)
-  const ordenesCompletadas = ordenesFiltradas.filter(o => o.estado === 'COMPLETADA').length
   const fechaGeneracion = new Date().toLocaleString('es-CO', {
     year: 'numeric', month: 'long', day: 'numeric',
     hour: '2-digit', minute: '2-digit'
@@ -108,11 +102,58 @@ function GenerarReporte() {
     return <div className="loading"><div className="loading-spinner"></div></div>
   }
 
+  const renderSeccion = (seccion) => {
+    if (seccion.tipo === 'stats') {
+      return (
+        <section className="report-section" key={seccion.id}>
+          <h2>{seccion.titulo}</h2>
+          <div className="report-grid-4">
+            {seccion.stats.map((stat, i) => (
+              <div className="report-stat" key={i}>
+                <span className={`report-stat-num${stat.className ? ' ' + stat.className : ''}`}>{stat.value}</span>
+                <span className="report-stat-label">{stat.label}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )
+    }
+    if (seccion.tipo === 'tabla') {
+      return (
+        <section className="report-section" key={seccion.id}>
+          <h2>{seccion.titulo}</h2>
+          <table>
+            <thead>
+              <tr>{seccion.headers.map((h, i) => <th key={i}>{h}</th>)}</tr>
+            </thead>
+            <tbody>
+              {seccion.rows.length === 0 ? (
+                <tr><td colSpan={seccion.headers.length} className="report-empty">Sin datos</td></tr>
+              ) : (
+                seccion.rows.map((row, ri) => (
+                  <tr key={ri}>
+                    {row.map((cell, ci) => {
+                      const val = typeof cell === 'object' ? cell.text : cell
+                      const cls = typeof cell === 'object' ? cell.className || '' : ''
+                      return <td key={ci} className={cls}>{val}</td>
+                    })}
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+          {seccion.total && <p className="report-total">{seccion.total}</p>}
+        </section>
+      )
+    }
+    return null
+  }
+
   const contenidoReporte = preview && (
     <div className="report-print-layout">
       <div className="report-header">
         <h1>Flotas y Transportes</h1>
-        <p className="report-subtitle">Reporte General</p>
+        <p className="report-subtitle">{tipoReporte === 'COMPLETO' ? 'Reporte Completo de Mantenimiento' : tipoReporte === 'RESUMIDO' ? 'Reporte Resumido' : 'Proyección de Mantenimiento'}</p>
         <p className="report-date">Generado: {fechaGeneracion}</p>
         {(fechaDesde || fechaHasta || filtroPlaca) && (
           <p className="report-filters">
@@ -121,131 +162,7 @@ function GenerarReporte() {
         )}
       </div>
 
-      {secciones.includes('resumen') && (
-        <section className="report-section">
-          <h2>Resumen General</h2>
-          <div className="report-grid-4">
-            <div className="report-stat"><span className="report-stat-num">{vehiculosFiltrados.length}</span><span className="report-stat-label">Vehículos</span></div>
-            <div className="report-stat"><span className="report-stat-num">{ordenesFiltradas.length}</span><span className="report-stat-label">Órdenes</span></div>
-            <div className="report-stat"><span className="report-stat-num">{reportesFiltrados.length}</span><span className="report-stat-label">Reportes</span></div>
-            <div className="report-stat"><span className="report-stat-num">${Math.round(totalCosto).toLocaleString()}</span><span className="report-stat-label">Costo Total</span></div>
-          </div>
-        </section>
-      )}
-
-      {secciones.includes('vehiculos') && (
-        <section className="report-section">
-          <h2>Vehículos ({vehiculosFiltrados.length})</h2>
-          <table>
-            <thead>
-              <tr><th>Placa</th><th>Tipo</th><th>Estado</th><th>Energía</th><th>Km Actual</th><th>% Vida</th></tr>
-            </thead>
-            <tbody>
-              {vehiculosFiltrados.length === 0 ? (
-                <tr><td colSpan={6} className="report-empty">Sin vehículos</td></tr>
-              ) : (
-                vehiculosFiltrados.map(v => {
-                  const pct = v.limiteMantenimiento ? Math.min((v.kilometrajeActual / v.limiteMantenimiento) * 100, 100) : 0
-                  return (
-                    <tr key={v.placa}>
-                      <td>{v.placa}</td>
-                      <td>{v.tipo || 'CAMION'}</td>
-                      <td>{v.estado}</td>
-                      <td>{v.tipoEnergia || '—'}</td>
-                      <td className="report-num">{v.kilometrajeActual?.toLocaleString()}</td>
-                      <td className="report-num">{Math.round(pct)}%</td>
-                    </tr>
-                  )
-                })
-              )}
-            </tbody>
-          </table>
-        </section>
-      )}
-
-      {secciones.includes('ordenes') && (
-        <section className="report-section">
-          <h2>Órdenes de Transporte ({ordenesFiltradas.length})</h2>
-          <table>
-            <thead>
-              <tr><th>Código</th><th>Vehículo</th><th>Origen → Destino</th><th>Estado</th><th>Fecha Creación</th></tr>
-            </thead>
-            <tbody>
-              {ordenesFiltradas.length === 0 ? (
-                <tr><td colSpan={5} className="report-empty">Sin órdenes</td></tr>
-              ) : (
-                ordenesFiltradas
-                  .sort((a, b) => new Date(b.fechaCreacion) - new Date(a.fechaCreacion))
-                  .map(o => (
-                    <tr key={o.codigoOrden}>
-                      <td>{o.codigoOrden}</td>
-                      <td>{o.vehiculoPlaca || '—'}</td>
-                      <td className="report-small">
-                        {o.origenLat != null
-                          ? `${o.origenLat.toFixed(3)},${o.origenLng?.toFixed(3)} → ${o.destinoLat.toFixed(3)},${o.destinoLng?.toFixed(3)}`
-                          : '—'}
-                      </td>
-                      <td>{o.estado}</td>
-                      <td className="report-num">{o.fechaCreacion ? new Date(o.fechaCreacion).toLocaleDateString() : '—'}</td>
-                    </tr>
-                  ))
-              )}
-            </tbody>
-          </table>
-          <p className="report-total">Completadas: {ordenesCompletadas} / {ordenesFiltradas.length}</p>
-        </section>
-      )}
-
-      {secciones.includes('reportes') && (
-        <section className="report-section">
-          <h2>Reportes de Mantenimiento ({reportesFiltrados.length})</h2>
-          <table>
-            <thead>
-              <tr><th>Fecha</th><th>Placa</th><th>Tipo</th><th>Taller</th><th>Costo</th><th>Prioridad</th></tr>
-            </thead>
-            <tbody>
-              {reportesFiltrados.length === 0 ? (
-                <tr><td colSpan={6} className="report-empty">Sin reportes</td></tr>
-              ) : (
-                reportesFiltrados
-                  .sort((a, b) => b.fecha.localeCompare(a.fecha))
-                  .map((r, i) => (
-                    <tr key={i}>
-                      <td className="report-num">{formatFecha(r.fecha)}</td>
-                      <td>{r.placaVehiculo}</td>
-                      <td>{r.tipoMantenimiento}</td>
-                      <td>{r.taller || '—'}</td>
-                      <td className="report-num">{r.costoEstimado ? `$${r.costoEstimado.toLocaleString()}` : '—'}</td>
-                      <td>{r.prioridad || 'MEDIA'}</td>
-                    </tr>
-                  ))
-              )}
-            </tbody>
-          </table>
-        </section>
-      )}
-
-      {secciones.includes('proximos') && proximos.length > 0 && (
-        <section className="report-section">
-          <h2>Próximos Mantenimientos ({proximos.length})</h2>
-          <table>
-            <thead>
-              <tr><th>Placa</th><th>Tipo</th><th>Km Restante</th><th>%</th><th>Riesgo</th></tr>
-            </thead>
-            <tbody>
-              {proximos.map(v => (
-                <tr key={v.placa}>
-                  <td>{v.placa}</td>
-                  <td>{v.tipo}</td>
-                  <td className="report-num">{v.kmRestantes?.toLocaleString()} km</td>
-                  <td className="report-num">{Math.round(v.porcentaje)}%</td>
-                  <td>{v.nivelRiesgo}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </section>
-      )}
+      {seccionesRender.map(renderSeccion)}
     </div>
   )
 
@@ -255,7 +172,7 @@ function GenerarReporte() {
         <h1 className="section-title" style={{ marginBottom: 0 }}>Generar Reporte</h1>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
           <button
-            onClick={() => setPreview(true)}
+            onClick={handlePreview}
             disabled={secciones.length === 0}
             className="action-card"
             style={{
@@ -292,6 +209,34 @@ function GenerarReporte() {
       </div>
 
       <div className="stat-card" style={{ marginBottom: '2rem' }}>
+        <div style={{ marginBottom: '1.25rem' }}>
+          <h3 style={{ fontSize: '0.9rem', color: 'var(--text-primary)', marginBottom: '0.75rem' }}>
+            Tipo de Reporte
+          </h3>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            {[
+              { id: 'COMPLETO', label: '◫ Completo', desc: 'Todas las secciones' },
+              { id: 'RESUMIDO', label: '◱ Resumido', desc: 'Solo KPIs principales' },
+              { id: 'PROYECCION', label: '◷ Proyección', desc: 'Enfoque en mantenimiento futuro' }
+            ].map(t => (
+              <button
+                key={t.id}
+                onClick={() => setTipoReporte(t.id)}
+                style={{
+                  padding: '0.5rem 1rem', borderRadius: '8px', fontSize: '0.85rem',
+                  border: tipoReporte === t.id ? '2px solid var(--accent-primary)' : '1px solid var(--border-color)',
+                  background: tipoReporte === t.id ? 'rgba(0,212,170,0.1)' : 'transparent',
+                  color: tipoReporte === t.id ? 'var(--accent-primary)' : 'var(--text-muted)',
+                  cursor: 'pointer'
+                }}
+              >
+                <div style={{ fontWeight: tipoReporte === t.id ? 700 : 400 }}>{t.label}</div>
+                <div style={{ fontSize: '0.7rem', opacity: 0.7 }}>{t.desc}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div style={{ marginBottom: '1.25rem' }}>
           <h3 style={{ fontSize: '0.9rem', color: 'var(--text-primary)', marginBottom: '0.75rem' }}>
             Secciones a incluir
