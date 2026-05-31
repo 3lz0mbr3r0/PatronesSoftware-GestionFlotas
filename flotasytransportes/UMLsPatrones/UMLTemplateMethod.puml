@@ -1,0 +1,106 @@
+@startuml
+title Patrón Template Method - Sistema de Gestión de Flotas (Frontend)
+
+skinparam classAttributeIconSize 0
+
+' =========================
+' ABSTRACT CLASS
+' =========================
+class PlantillaReporte {
+    + generar(datosCrudos, filtros) : secciones
+    + validarParametros(datos, filtros) : void
+    + aplicarFiltros(datos, filtros) : datos
+    + calcularMetricas(datos) : metricas
+    + hookPreConstruir(metricas) : void
+    + construirSecciones(metricas, filtros) : secciones
+    + hookPostConstruir(secciones) : void
+}
+
+note top of PlantillaReporte
+  Clase base abstracta.
+  Define el template method generar()
+  con 6 pasos, de los cuales 3 son
+  abstractos: aplicarFiltros,
+  calcularMetricas, construirSecciones.
+end note
+
+note right of PlantillaReporte
+  Template Method:
+  1. validarParametros
+  2. aplicarFiltros
+  3. calcularMetricas
+  4. hookPreConstruir
+  5. construirSecciones
+  6. hookPostConstruir
+end note
+
+' =========================
+' CONCRETE TEMPLATES
+' =========================
+class ReporteCompleto {
+    + aplicarFiltros(datos, filtros) : datos
+    + calcularMetricas(datos) : metricas
+    + construirSecciones(metricas, filtros) : secciones
+    + hookPostConstruir(secciones) : void
+}
+
+note bottom of ReporteCompleto
+  Genera 5 secciones: resumen,
+  vehículos, órdenes, reportes,
+  próximos mantenimientos.
+  Sobrescribe hookPostConstruir
+  para agregar timestamp.
+end note
+
+class ReporteResumido {
+    + aplicarFiltros(datos, filtros) : datos
+    + calcularMetricas(datos) : metricas
+    + construirSecciones(metricas, filtros) : secciones
+}
+
+note bottom of ReporteResumido
+  Genera 3 secciones compactas:
+  resumen ejecutivo con KPIs,
+  reportes por prioridad,
+  próximos mantenimientos (top 5).
+end note
+
+class ReporteProyeccion {
+    + aplicarFiltros(datos, filtros) : datos
+    + calcularMetricas(datos) : metricas
+    + construirSecciones(metricas, filtros) : secciones
+    + hookPostConstruir(secciones) : void
+}
+
+note bottom of ReporteProyeccion
+  Enfoque en mantenimiento futuro.
+  Calcula proyección individual:
+  km restante, % vida, próx. estimado.
+  Identifica CRÍTICOS (>=80%) y MEDIO (50-80%).
+end note
+
+' =========================
+' RELACIONES
+' =========================
+PlantillaReporte <|-- ReporteCompleto : extends
+PlantillaReporte <|-- ReporteResumido : extends
+PlantillaReporte <|-- ReporteProyeccion : extends
+
+' =========================
+' CLIENTE
+' =========================
+class GenerarReporte {
+    - tipoReporte : String
+    - filtros : Object
+    + generarVistaPrevia() : void
+}
+
+note bottom of GenerarReporte
+  Componente React. Según tipoReporte
+  crea ReporteCompleto, Resumido o
+  Proyeccion y ejecuta generar().
+end note
+
+GenerarReporte --> PlantillaReporte : "usa"
+
+@enduml

@@ -3,6 +3,7 @@ package com.flotasytransportes.aplicacion.servicio;
 import com.flotasytransportes.dominio.modelo.ReporteMantenimiento;
 import com.flotasytransportes.dominio.modelo.Vehiculo;
 import com.flotasytransportes.dominio.modelo.EstadoVehiculo;
+import com.flotasytransportes.dominio.puertos.ReporteMantenimientoRepositoryPort;
 import com.flotasytransportes.dominio.puertos.VehiculoRepositoryPort;
 import com.flotasytransportes.infraestructura.web.dto.ReporteMantenimientoDTO;
 import com.flotasytransportes.infraestructura.web.dto.ReporteProyeccionDTO;
@@ -17,11 +18,12 @@ import java.util.stream.Collectors;
 @Service
 public class ReporteMantenimientoService {
 
-    private List<ReporteMantenimiento> reportes = new ArrayList<>();
-    
+    private final ReporteMantenimientoRepositoryPort reporteRepository;
     private final VehiculoRepositoryPort vehiculoRepository;
 
-    public ReporteMantenimientoService(VehiculoRepositoryPort vehiculoRepository) {
+    public ReporteMantenimientoService(ReporteMantenimientoRepositoryPort reporteRepository,
+                                       VehiculoRepositoryPort vehiculoRepository) {
+        this.reporteRepository = reporteRepository;
         this.vehiculoRepository = vehiculoRepository;
     }
 
@@ -53,17 +55,15 @@ public class ReporteMantenimientoService {
         .proximoMantenimientoKm(dto.getProximoMantenimientoKm())
         .build();
 
-        reportes.add(reporte);
-
-        return reporte;
+        return reporteRepository.guardar(reporte);
     }
 
     public List<ReporteMantenimiento> listarReportes() {
-        return reportes;
+        return reporteRepository.buscarTodos();
     }
 
     public List<ReporteMantenimiento> listarOrdenadosPorFecha(String direccion) {
-        return reportes.stream()
+        return reporteRepository.buscarTodos().stream()
             .sorted(direccion.equalsIgnoreCase("asc")
                 ? Comparator.comparing(ReporteMantenimiento::getFecha)
                 : Comparator.comparing(ReporteMantenimiento::getFecha).reversed())
@@ -71,14 +71,14 @@ public class ReporteMantenimientoService {
     }
 
     public List<ReporteMantenimiento> listarPorRangoFechas(String desde, String hasta) {
-        return reportes.stream()
+        return reporteRepository.buscarTodos().stream()
             .filter(r -> r.getFecha().compareTo(desde) >= 0 && r.getFecha().compareTo(hasta) <= 0)
             .sorted(Comparator.comparing(ReporteMantenimiento::getFecha).reversed())
             .collect(Collectors.toList());
     }
 
     public List<ReporteMantenimiento> listarProximos(Double kmUmbral) {
-        return reportes.stream()
+        return reporteRepository.buscarTodos().stream()
             .filter(r -> {
                 Vehiculo v = vehiculoRepository.buscarPorPlaca(r.getPlacaVehiculo()).orElse(null);
                 if (v == null) return false;
@@ -102,7 +102,7 @@ public class ReporteMantenimientoService {
             Double targetKm = v.getLimiteMantenimiento();
             if (kmActual == null || targetKm == null) continue;
 
-            ReporteMantenimiento ultimoReporte = reportes.stream()
+            ReporteMantenimiento ultimoReporte = reporteRepository.buscarPorPlaca(v.getPlaca()).stream()
                 .filter(r -> r.getPlacaVehiculo().equals(v.getPlaca())
                           && r.getProximoMantenimientoKm() != null)
                 .max(Comparator.comparing(ReporteMantenimiento::getFecha))
@@ -147,10 +147,7 @@ public class ReporteMantenimientoService {
             return new ReporteProyeccionDTO(placa, null, null, null, null, null, "SIN_DATOS");
         }
 
-        List<ReporteMantenimiento> reportesVehiculo = reportes.stream()
-            .filter(r -> r.getPlacaVehiculo().equals(placa))
-            .sorted(Comparator.comparing(ReporteMantenimiento::getFecha))
-            .collect(Collectors.toList());
+        List<ReporteMantenimiento> reportesVehiculo = reporteRepository.buscarPorPlaca(placa);
 
         Double ultimoKm = reportesVehiculo.isEmpty() ? null : reportesVehiculo.get(reportesVehiculo.size() - 1).getKilometraje();
         Double promedioIntervalo = null;
@@ -203,11 +200,7 @@ public class ReporteMantenimientoService {
     }
 
     public void eliminarReporte(String placaVehiculo, String tipoMantenimiento, String fecha) {
-        reportes.removeIf(r ->
-            r.getPlacaVehiculo().equals(placaVehiculo) &&
-            r.getTipoMantenimiento().equals(tipoMantenimiento) &&
-            r.getFecha().equals(fecha)
-        );
+        reporteRepository.eliminar(placaVehiculo, tipoMantenimiento, fecha);
     }
     
 }

@@ -1,0 +1,101 @@
+@startuml
+title Patrón Memento - Sistema de Gestión de Flotas (Frontend)
+
+skinparam classAttributeIconSize 0
+
+' =========================
+' MEMENTO
+' =========================
+class MementoHistorial {
+    - estadoPrivado : Object
+    + nombre : String
+    + timestamp : String
+    + id : Number
+    + getNombre() : String
+    + getTimestamp() : String
+    + getId() : Number
+    + getEstado() : Object
+    - deepClone(obj) : Object
+}
+
+note top of MementoHistorial
+  Almacena el estado completo de la
+  vista (vehículo, reportes, órdenes,
+  proyección) en estadoPrivado.
+  Solo el Originador accede al estado
+  mediante getEstado() que retorna
+  una copia profunda con deepClone().
+end note
+
+' =========================
+' ORIGINATOR
+' =========================
+class OriginadorHistorial {
+    + estado : Object
+    + setEstado(nuevoEstado) : void
+    + crearMemento(nombre) : MementoHistorial
+    + restaurar(memento) : void
+}
+
+note right of OriginadorHistorial
+  Mantiene el estado actual de la
+  vista. crearMemento() genera un
+  snapshot. restaurar(memento)
+  recupera un estado anterior.
+end note
+
+' =========================
+' CARETAKER
+' =========================
+class CuidadorHistorial {
+    - originador : OriginadorHistorial
+    - undoStack : List<MementoHistorial>
+    - redoStack : List<MementoHistorial>
+    - maxHistorial : int
+    + guardar(nombre) : MementoHistorial
+    + deshacer() : MementoHistorial
+    + rehacer() : MementoHistorial
+    + puedeDeshacer() : boolean
+    + puedeRehacer() : boolean
+    + obtenerHistorial() : List<MementoHistorial>
+    + obtenerRedoHistorial() : List<MementoHistorial>
+    + obtenerNombreUltimo() : String
+}
+
+note right of CuidadorHistorial
+  Administra las pilas undo/redo.
+  Al guardar, limpia redoStack.
+  undo: pop undoStack, push redoStack.
+  redo: pop redoStack, push undoStack.
+  Máximo 20 snapshots.
+end note
+
+' =========================
+' RELACIONES
+' =========================
+OriginadorHistorial --> MementoHistorial : "crea"
+CuidadorHistorial --> MementoHistorial : "gestiona"
+CuidadorHistorial --> OriginadorHistorial : "usa"
+
+' =========================
+' CLIENTE
+' =========================
+class HistorialVehiculo {
+    - vehiculoSeleccionado : String
+    - snapshotHistory : List
+    + seleccionarVehiculo(placa) : void
+    + deshacer() : void
+    + rehacer() : void
+}
+
+note bottom of HistorialVehiculo
+  Componente React. Al seleccionar
+  un vehículo, guarda snapshot vía
+  CuidadorHistorial. Botones
+  "◀ Anterior" y "Siguiente ▶"
+  navegan el historial.
+end note
+
+HistorialVehiculo --> CuidadorHistorial : "usa"
+
+@enduml

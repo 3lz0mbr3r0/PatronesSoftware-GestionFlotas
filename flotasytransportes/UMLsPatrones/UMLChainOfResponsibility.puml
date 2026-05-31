@@ -1,0 +1,107 @@
+@startuml
+title Patrón Chain of Responsibility - Sistema de Gestión de Flotas (Frontend)
+
+skinparam classAttributeIconSize 0
+
+' =========================
+' HANDLER BASE
+' =========================
+class ManejadorComparacion {
+    - siguiente : ManejadorComparacion
+    + setSiguiente(handler) : ManejadorComparacion
+    + manejar(contexto) : contexto
+}
+
+note top of ManejadorComparacion
+  Clase base. El método manejar()
+  por defecto pasa la solicitud
+  al siguiente handler en la cadena.
+end note
+
+' =========================
+' CONCRETE HANDLERS
+' =========================
+class ValidarSeleccionHandler {
+    + manejar(contexto) : contexto
+}
+
+note right of ValidarSeleccionHandler
+  Valida que haya entre 2 y 5
+  vehículos seleccionados.
+  Si no cumple, lanza error y
+  detiene la cadena.
+end note
+
+class EnriquecerDatosHandler {
+    + manejar(contexto) : contexto
+}
+
+note right of EnriquecerDatosHandler
+  Consulta reportes y órdenes
+  desde el backend con Promise.all.
+  Solo ejecuta si no están cargados.
+end note
+
+class CalcularMetricasHandler {
+    + manejar(contexto) : contexto
+}
+
+note right of CalcularMetricasHandler
+  Calcula 13 métricas por vehículo:
+  kmActual, pctVida, costoTotal,
+  costoPromedio, ordenesCompletadas,
+  totalOrdenes, horasMantenimiento,
+  ultimoReporte.
+end note
+
+class DeterminarMejorHandler {
+    + manejar(contexto) : contexto
+}
+
+note right of DeterminarMejorHandler
+  Identifica el mejor valor (★)
+  para cada métrica numérica.
+  menorEsMejor: pctVida, costos, horas.
+  mayorEsMejor: órdenes completadas.
+end note
+
+class FormatearResultadoHandler {
+    + manejar(contexto) : contexto
+}
+
+note right of FormatearResultadoHandler
+  Construye el output final con
+  flags _mejores que indican qué
+  vehículo tiene el valor óptimo
+  en cada métrica.
+end note
+
+' =========================
+' RELACIONES
+' =========================
+ManejadorComparacion <|-- ValidarSeleccionHandler : extends
+ManejadorComparacion <|-- EnriquecerDatosHandler : extends
+ManejadorComparacion <|-- CalcularMetricasHandler : extends
+ManejadorComparacion <|-- DeterminarMejorHandler : extends
+ManejadorComparacion <|-- FormatearResultadoHandler : extends
+
+' =========================
+' CLIENTE
+' =========================
+class Comparador {
+    - selected : List
+    - resultados : List
+    + handleCompare() : void
+}
+
+note bottom of Comparador
+  Arma la cadena en useEffect:
+  validar -> enriquecer -> calcular
+  -> determinarMejor -> formatear
+  Llama a cadena.manejar(contexto)
+  al hacer clic en "Comparar".
+end note
+
+Comparador --> ManejadorComparacion : "arma cadena"
+
+@enduml

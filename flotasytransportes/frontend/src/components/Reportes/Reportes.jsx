@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { reportesService, vehiculosService } from '../../services/api'
 import commandHistory, { CrearReporteCommand } from '../../patterns/comandos'
 
@@ -63,6 +63,28 @@ function Reportes() {
   const [kmUmbralProximos, setKmUmbralProximos] = useState(5000)
   const [loadingReportes, setLoadingReportes] = useState(false)
   const [vehiculosProximos, setVehiculosProximos] = useState([])
+  const [proyeccionSeleccionada, setProyeccionSeleccionada] = useState(null)
+  const [proyeccionData, setProyeccionData] = useState(null)
+  const [loadingProyeccion, setLoadingProyeccion] = useState(false)
+
+  const verProyeccion = async (placa) => {
+    if (proyeccionSeleccionada === placa) {
+      setProyeccionSeleccionada(null)
+      setProyeccionData(null)
+      return
+    }
+    setProyeccionSeleccionada(placa)
+    setLoadingProyeccion(true)
+    setProyeccionData(null)
+    try {
+      const data = await reportesService.proyectar(placa)
+      setProyeccionData(data)
+    } catch {
+      setProyeccionData(null)
+    } finally {
+      setLoadingProyeccion(false)
+    }
+  }
 
   const cargarReportes = async (modo, params) => {
     setLoadingReportes(true)
@@ -393,44 +415,107 @@ function Reportes() {
                       : v.nivelRiesgo === 'ALTO' ? '#f59e0b'
                       : v.nivelRiesgo === 'MEDIO' ? '#8b5cf6'
                       : 'var(--accent-primary)'
+                    const expandida = proyeccionSeleccionada === v.placa
                     return (
-                      <tr key={v.placa} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                        <td style={{ padding: '0.75rem 0.5rem', fontWeight: 600, color: 'var(--text-primary)' }}>{v.placa}</td>
-                        <td style={{ padding: '0.75rem 0.5rem', color: 'var(--text-secondary)' }}>{v.tipo}</td>
-                        <td style={{ padding: '0.75rem 0.5rem', textAlign: 'right', color: 'var(--text-primary)' }}>{v.kilometrajeActual?.toLocaleString()}</td>
-                        <td style={{ padding: '0.75rem 0.5rem', textAlign: 'right', color: 'var(--text-secondary)' }}>
-                          {v.proximoMantenimientoKm ? v.proximoMantenimientoKm?.toLocaleString() : v.limiteMantenimiento?.toLocaleString()}
-                        </td>
-                        <td style={{
-                          padding: '0.75rem 0.5rem', textAlign: 'right',
-                          color: v.kmRestantes <= 0 ? '#ef4444' : 'var(--text-primary)',
-                          fontWeight: v.kmRestantes <= 0 ? 700 : 400
-                        }}>
-                          {v.kmRestantes <= 0 ? `${Math.abs(v.kmRestantes).toLocaleString()} vencido` : `${v.kmRestantes.toLocaleString()} km`}
-                        </td>
-                        <td style={{ padding: '0.75rem 0.5rem' }}>
-                          <div style={{
-                            width: '60px', height: '6px', background: 'var(--bg-tertiary)',
-                            borderRadius: '3px', overflow: 'hidden', margin: '0 auto'
+                      <React.Fragment key={v.placa}>
+                        <tr style={{
+                          borderBottom: expandida ? 'none' : '1px solid var(--border-subtle)',
+                          cursor: 'pointer', transition: 'background 0.15s ease'
+                        }}
+                          onClick={() => verProyeccion(v.placa)}
+                          onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-card-hover)'}
+                          onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                        >
+                          <td style={{ padding: '0.75rem 0.5rem', fontWeight: 600, color: 'var(--accent-primary)' }}>
+                            {v.placa} <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{expandida ? '▲' : '▼'}</span>
+                          </td>
+                          <td style={{ padding: '0.75rem 0.5rem', color: 'var(--text-secondary)' }}>{v.tipo}</td>
+                          <td style={{ padding: '0.75rem 0.5rem', textAlign: 'right', color: 'var(--text-primary)' }}>{v.kilometrajeActual?.toLocaleString()}</td>
+                          <td style={{ padding: '0.75rem 0.5rem', textAlign: 'right', color: 'var(--text-secondary)' }}>
+                            {v.proximoMantenimientoKm ? v.proximoMantenimientoKm?.toLocaleString() : v.limiteMantenimiento?.toLocaleString()}
+                          </td>
+                          <td style={{
+                            padding: '0.75rem 0.5rem', textAlign: 'right',
+                            color: v.kmRestantes <= 0 ? '#ef4444' : 'var(--text-primary)',
+                            fontWeight: v.kmRestantes <= 0 ? 700 : 400
                           }}>
+                            {v.kmRestantes <= 0 ? `${Math.abs(v.kmRestantes).toLocaleString()} vencido` : `${v.kmRestantes.toLocaleString()} km`}
+                          </td>
+                          <td style={{ padding: '0.75rem 0.5rem' }}>
                             <div style={{
-                              width: `${barWidth}%`, height: '100%', background: barColor,
-                              borderRadius: '3px', transition: 'width 0.3s ease'
-                            }} />
-                          </div>
-                          <div style={{ textAlign: 'center', fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                            {Math.round(v.porcentaje)}%
-                          </div>
-                        </td>
-                        <td style={{ padding: '0.75rem 0.5rem', textAlign: 'center' }}>
-                          <span style={{
-                            padding: '0.2rem 0.6rem', borderRadius: '4px', fontSize: '0.75rem',
-                            background: rc.bg, color: rc.color
-                          }}>
-                            {v.nivelRiesgo}
-                          </span>
-                        </td>
-                      </tr>
+                              width: '60px', height: '6px', background: 'var(--bg-tertiary)',
+                              borderRadius: '3px', overflow: 'hidden', margin: '0 auto'
+                            }}>
+                              <div style={{
+                                width: `${barWidth}%`, height: '100%', background: barColor,
+                                borderRadius: '3px', transition: 'width 0.3s ease'
+                              }} />
+                            </div>
+                            <div style={{ textAlign: 'center', fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                              {Math.round(v.porcentaje)}%
+                            </div>
+                          </td>
+                          <td style={{ padding: '0.75rem 0.5rem', textAlign: 'center' }}>
+                            <span style={{
+                              padding: '0.2rem 0.6rem', borderRadius: '4px', fontSize: '0.75rem',
+                              background: rc.bg, color: rc.color
+                            }}>
+                              {v.nivelRiesgo}
+                            </span>
+                          </td>
+                        </tr>
+                        {expandida && (
+                          <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                            <td colSpan={7} style={{ padding: '0.75rem 1rem' }}>
+                              {loadingProyeccion ? (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                                  <div className="loading-spinner" style={{ width: '18px', height: '18px', borderWidth: '2px' }}></div>
+                                  Cargando proyección...
+                                </div>
+                              ) : proyeccionData ? (
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '1rem' }}>
+                                  <div>
+                                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>Último Reporte</div>
+                                    <div style={{ fontSize: '0.85rem', color: 'var(--text-primary)', fontWeight: 500 }}>
+                                      {proyeccionData.ultimoKmReporte ? `${Math.round(proyeccionData.ultimoKmReporte).toLocaleString()} km` : 'Sin reportes previos'}
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>Intervalo Promedio</div>
+                                    <div style={{ fontSize: '0.85rem', color: 'var(--text-primary)', fontWeight: 500 }}>
+                                      {proyeccionData.promedioIntervaloKm ? `${Math.round(proyeccionData.promedioIntervaloKm).toLocaleString()} km` : '2+ reportes requeridos'}
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>Próximo Estimado</div>
+                                    <div style={{ fontSize: '0.85rem', color: 'var(--accent-primary)', fontWeight: 600 }}>
+                                      {Math.round(proyeccionData.proximoEstimadoKm).toLocaleString()} km
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>Km Restantes</div>
+                                    <div style={{ fontSize: '0.85rem', color: proyeccionData.kmRestantes <= 0 ? '#ef4444' : 'var(--text-primary)', fontWeight: 600 }}>
+                                      {proyeccionData.kmRestantes <= 0
+                                        ? `${Math.abs(proyeccionData.kmRestantes).toLocaleString()} km vencido`
+                                        : `${Math.round(proyeccionData.kmRestantes).toLocaleString()} km`}
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>Días Estimados</div>
+                                    <div style={{ fontSize: '0.85rem', color: proyeccionData.kmRestantes <= 0 ? '#ef4444' : 'var(--text-primary)', fontWeight: 500 }}>
+                                      {proyeccionData.diasEstimados != null ? `≈ ${proyeccionData.diasEstimados} día${proyeccionData.diasEstimados !== 1 ? 's' : ''}` : 'Sin datos suficientes'}
+                                    </div>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                                  Sin datos de proyección para este vehículo
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
                     )
                   })}
                 </tbody>
