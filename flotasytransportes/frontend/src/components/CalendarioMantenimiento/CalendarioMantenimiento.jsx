@@ -66,6 +66,8 @@ function CalendarioMantenimiento() {
     setExpandedMonth(expandedMonth === key ? null : key)
   }
 
+  const proximosFiltrados = proximos.filter(v => v.nivelRiesgo === 'CRITICO' || v.nivelRiesgo === 'ALTO')
+
   if (loading) {
     return <div className="loading"><div className="loading-spinner"></div></div>
   }
@@ -93,7 +95,7 @@ function CalendarioMantenimiento() {
         )}
       </div>
 
-      {proximos.length > 0 && (
+      {proximosFiltrados.length > 0 && (
         <div className="stat-card" style={{
           marginBottom: '2rem',
           borderColor: 'var(--accent-primary)',
@@ -104,12 +106,12 @@ function CalendarioMantenimiento() {
             <div>
               <strong style={{ color: 'var(--accent-primary)' }}>Próximos Eventos</strong>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '0.25rem' }}>
-                {proximos.length} vehículo{proximos.length !== 1 ? 's' : ''} próximo{proximos.length !== 1 ? 's' : ''} a mantenimiento
+                {proximosFiltrados.length} vehículo{proximosFiltrados.length !== 1 ? 's' : ''} próximo{proximosFiltrados.length !== 1 ? 's' : ''} a mantenimiento
               </p>
             </div>
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
-            {proximos.map(v => {
+            {proximosFiltrados.map(v => {
               const rc = riesgoColors[v.nivelRiesgo] || riesgoColors.BAJO
               return (
                 <div key={v.placa} style={{

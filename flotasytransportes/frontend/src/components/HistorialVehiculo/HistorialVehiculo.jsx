@@ -30,6 +30,7 @@ function HistorialVehiculo() {
   const [historialSnapshots, setHistorialSnapshots] = useState([])
   const originadorRef = useRef(null)
   const cuidadorRef = useRef(null)
+  const restaurandoRef = useRef(false)
 
   useEffect(() => {
     const originador = new OriginadorHistorial()
@@ -85,6 +86,7 @@ function HistorialVehiculo() {
 
   useEffect(() => {
     if (!selectedPlaca || !vehiculo) return
+    if (restaurandoRef.current) return
     if (!loadingDetail) {
       guardarSnapshot(selectedPlaca)
     }
@@ -106,6 +108,7 @@ function HistorialVehiculo() {
   const handleDeshacer = () => {
     const cuidador = cuidadorRef.current
     if (!cuidador) return
+    restaurandoRef.current = true
     const memento = cuidador.deshacer()
     if (memento) {
       aplicarEstadoMemento(memento.getEstado())
@@ -118,6 +121,7 @@ function HistorialVehiculo() {
   const handleRehacer = () => {
     const cuidador = cuidadorRef.current
     if (!cuidador) return
+    restaurandoRef.current = true
     const memento = cuidador.rehacer()
     if (memento) {
       aplicarEstadoMemento(memento.getEstado())
@@ -126,6 +130,10 @@ function HistorialVehiculo() {
       setHistorialSnapshots(cuidador.obtenerHistorial())
     }
   }
+
+  useEffect(() => {
+    restaurandoRef.current = false
+  })
 
   if (loading) {
     return <div className="loading"><div className="loading-spinner"></div></div>

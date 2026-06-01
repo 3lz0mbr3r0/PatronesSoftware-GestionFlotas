@@ -94,7 +94,7 @@ function Comparador() {
     { label: 'Tipo', key: 'tipo', type: 'text' },
     { label: 'Estado', key: 'estado', type: 'estado' },
     { label: 'Energía', key: 'energia', type: 'text' },
-    { label: 'Km Actual', key: 'kmActual', type: 'number', suffix: ' km', menorEsMejor: false, decimals: 0 },
+    { label: 'Km Actual', key: 'kmActual', type: 'number', suffix: ' km', menorEsMejor: true, decimals: 0 },
     { label: 'Límite Mant.', key: 'limiteMantenimiento', type: 'number', suffix: ' km', decimals: 0 },
     { label: '% Vida Útil', key: 'pctVida', type: 'number', suffix: '%', menorEsMejor: true, decimals: 0 },
     { label: 'Reportes', key: 'totalReportes', type: 'number', menorEsMejor: true },

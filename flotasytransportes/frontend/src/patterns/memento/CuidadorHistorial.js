@@ -22,7 +22,7 @@ export class CuidadorHistorial {
       console.log(`[Memento] No hay más snapshots para deshacer`)
       return null
     }
-    const actual = this.originador.crearMemento('Antes de deshacer')
+    const actual = this.originador.crearMemento(`Antes de deshacer: ${this.originador.getPlaca()}`)
     this.redoStack.push(actual)
     this.undoStack.pop()
     const anterior = this.undoStack[this.undoStack.length - 1]
@@ -36,7 +36,7 @@ export class CuidadorHistorial {
       console.log(`[Memento] No hay más snapshots para rehacer`)
       return null
     }
-    const actual = this.originador.crearMemento('Antes de rehacer')
+    const actual = this.originador.crearMemento(`Antes de rehacer: ${this.originador.getPlaca()}`)
     this.undoStack.push(actual)
     const siguiente = this.redoStack.pop()
     this.originador.restaurar(siguiente)
