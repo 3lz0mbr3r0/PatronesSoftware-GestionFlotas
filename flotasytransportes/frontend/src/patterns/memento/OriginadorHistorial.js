@@ -32,6 +32,10 @@ export class OriginadorHistorial {
     }, nombre)
   }
 
+  getPlaca() {
+    return this.estado.placa || ''
+  }
+
   restaurar(memento) {
     const estado = memento.getEstado()
     console.log(`[Memento] ↩ Restaurando: "${memento.getNombre()}" (${memento.getTimestamp()})`)
